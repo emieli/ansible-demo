@@ -82,3 +82,7 @@ $ ansible-inventory --list
 
 We have now installed Ansible and created a inventory file. Next up is creating our first Ansible playbook!
 
+Next up is chapter 2:
+```
+git switch chapter-2
+```
