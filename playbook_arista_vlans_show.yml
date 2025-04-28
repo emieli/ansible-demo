@@ -1,0 +1,20 @@
+---
+- name: Show Arista VLANs
+  hosts:
+    - "SW-1"
+    - "SW-2"
+  tasks:
+
+    - name: "Arista: Get vlans"
+      arista.eos.eos_vlans:
+        state: gathered
+      register: vlans
+
+    - name: "Arista: Show output: vlans"
+      debug:
+        var: vlans
+
+    - name: "Arista: Show output: vlans.gathered"
+      debug:
+        var: vlans.gathered
+
