@@ -36,7 +36,9 @@ We now have to tell Ansible which file to look in, so we have to create an ansib
 ```
 [defaults]
 inventory = ./hosts.yml
+callback_result_format = yaml
 ```
+*I snuck in a line to make results be displayed in yaml format. The default fomat is json.*
 
 We can test that the inventory is loaded properly with the **ansible-inventory --list** command:
 ```
