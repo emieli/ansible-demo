@@ -1,0 +1,14 @@
+---
+- name: Add VLANs
+  hosts: "EOS"
+  tasks:
+
+    - name: "Arista: Add vlans"
+      arista.eos.eos_vlans:
+        state: merged
+        config:
+          - name: HERP
+            vlan_id: 2
+          - name: DERP
+            vlan_id: 3
+

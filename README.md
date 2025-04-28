@@ -1,95 +1,20 @@
-# Chapter 2: First Playbook
-I have prepared a **playbook_arista_vlans_show.yml** for us, let's run it:
+# Chapter 3: Playbook to Add a VLAN
+This time a playbook **playbook_arista_vlans_add.yml** has been added. Let's run it:
 ```
-(venv) emileli@clab:~/ansible-demo$ ansible-playbook playbook_arista_vlans_show.yml
+(venv) emileli@clab:~/ansible-demo$ ansible-playbook playbook_arista_vlans_add.yml
 
-PLAY [Show Arista VLANs] 
+PLAY [Add VLANs] 
 
-TASK [Arista: Get vlans]
-fatal: [SW-1]: FAILED! =>
-    changed: false
-    msg: Connection type ssh is not valid for this module
-fatal: [SW-2]: FAILED! =>
-    changed: false
-    msg: Connection type ssh is not valid for this module
+TASK [Arista: Add vlans]
+changed: [SW-2]
+changed: [SW-1]
 
 PLAY RECAP 
-SW-1                       : ok=0    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
-SW-2                       : ok=0    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
+SW-1                       : ok=1    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+SW-2                       : ok=1    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 ```
 
-That didn't go well. Ansible tried to use SSH to connect to the switch, but the SSH connection type is not supported by the Arista Ansible modules. Instead, it expects Ansible to communicate via Rest API (HTTPS). Let's fix this by editing our inventory file to look like this:
-
-**hosts.yml**:
-```yaml
-SITE01:
-  hosts:
-    FW-1:
-      ansible_host: 172.20.20.4
-    SW-1:
-      ansible_host: 172.20.20.3
-    SW-2:
-      ansible_host: 172.20.20.2
-EOS:
-  hosts:
-    SW-1:
-    SW-2:
-  vars:
-    ansible_connection: ansible.netcommon.httpapi
-    ansible_network_os: arista.eos.eos
-    ansible_httpapi_use_ssl: true
-    ansible_httpapi_validate_certs: false
-```
-
-The above config creates a new group (EOS) and adds SW-1 and SW-2 as members. We then tell Ansible to use its HTTP-API module when communicating with these Arista switches. Ansible also need to know what OS the switches are, which we supply with the **ansible_network_os** line. Finally we tell Ansible to use HTTPS but not validate the certificate, as the Arista API certificate is self-signed.
-
-Let's run the playbook again and see what happens:
-```
-(venv) emileli@clab:~/ansible-demo$ ansible-playbook playbook_arista_vlans_show.yml
-
-PLAY [Show Arista VLANs] 
-
-TASK [Arista: Get vlans]
-fatal: [SW-1]: FAILED! =>
-    changed: false
-    msg: 'HTTP Error 401: Unauthorized'
-fatal: [SW-2]: FAILED! =>
-    changed: false
-    msg: 'HTTP Error 401: Unauthorized'
-
-PLAY RECAP 
-SW-1                       : ok=0    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
-SW-2                       : ok=0    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
-```
-
-Progress! Yes, the playbook still failed, but atleast we got a different error message. It's not clear what credentials Ansible are using to connect, so make sure it's using the correct ones. Open up hosts.yml again and make it look like this:
-
-**hosts:yml**:
-```yaml
-SITE01:
-  hosts:
-    FW-1:
-      ansible_host: 172.20.20.4
-    SW-1:
-      ansible_host: 172.20.20.3
-    SW-2:
-      ansible_host: 172.20.20.2
-EOS:
-  hosts:
-    SW-1:
-    SW-2:
-  vars:
-    ansible_connection: ansible.netcommon.httpapi
-    ansible_network_os: arista.eos.eos
-    ansible_httpapi_use_ssl: true
-    ansible_httpapi_validate_certs: false
-    ansible_user: admin
-    ansible_password: admin
-```
-
-Ansible now know to use the admin/admin credentials when connection.
-
-Ok, let's try again:
+Ok, some "Add vlans" task obviously changed something on our two switches. Let's run **playbook_arista_vlans_show.yml** to figure out what that change was:
 ```
 (venv) emileli@clab:~/ansible-demo$ ansible-playbook playbook_arista_vlans_show.yml
 
@@ -99,68 +24,107 @@ TASK [Arista: Get vlans]
 ok: [SW-1]
 ok: [SW-2]
 
-TASK [Arista: Show output: vlans] 
-ok: [SW-2] =>
-    vlans:
-        changed: false
-        failed: false
-        gathered: []
+TASK [Arista: Show output: vlans]
 ok: [SW-1] =>
     vlans:
         changed: false
         failed: false
-        gathered: []
+        gathered:
+        -   name: HERP
+            state: active
+            vlan_id: 2
+        -   name: DERP
+            state: active
+            vlan_id: 3
+ok: [SW-2] =>
+    vlans:
+        changed: false
+        failed: false
+        gathered:
+        -   name: HERP
+            state: active
+            vlan_id: 2
+        -   name: DERP
+            state: active
+            vlan_id: 3
 
-TASK [Arista: Show output: vlans.gathered] 
+TASK [Arista: Show output: vlans.gathered.0] 
 ok: [SW-1] =>
-    vlans.gathered: []
+    msg: Vlan 2 is named HERP
 ok: [SW-2] =>
-    vlans.gathered: []
+    msg: Vlan 2 is named HERP
 
 PLAY RECAP 
 SW-1                       : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 SW-2                       : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 ```
 
-Success! All tasks were completed. Let us take a moment to look at the generated output and compare it to the actual playbook below. A playbook contains a list of "Plays" to perform. In this playbook there is only a single play: "Show Arista VLANs". It's configured to run on two hosts, SW-1 and SW-2.
+Ok, so two vlans were added: HERP (2) and DERP (3). Let's look at the playbook to verify that this was indeed the change it wanted to make.
 
-Our play contain three tasks. The first task uses the **eos_vlans** module which gather information about the VLANs configured on the switch. The result is registered in a variable named **vlans**.  The following two tasks are two **debug** tasks where the data fetched from the sswitch is printed to the Ansible playbook output.
-
-I chose to use two debug statements to illustrate how Ansible can "drill down" into variables to fetch specific values. For example, the first debug statement prints the full **vlans** output, which contains three key-value pairs: **changed**, **failed**, **gathered**. Since we only fetched data, nothing was changed. Fetching the data went well, there was no failure in doing so. Finally, the gathered key returned an empty list. We can see that it is a list by the **[]**, and we can see that it is empty because there is no text between the brackets.
-
-In the second debug statement we only print the **vlans.gathered** output, giving us the empty list. Drilling down like this is a very powerful feature, allowing Ansible to react to data that is fetched. In this example we only print the data that was returned, but Ansible can do more.
-
-**playbook_arista_vlans_show.yml**:
-```yaml
+**playbook_arista_vlan_add.yml**:
+```
+(venv) emileli@clab:~/ansible-demo$ cat playbook_arista_vlans_add.yml
 ---
-- name: Show Arista VLANs
-  hosts:
-    - "SW-1"
-    - "SW-2"
+- name: Add VLANs
+  hosts: "EOS"
   tasks:
-
-    - name: "Arista: Get vlans"
+    - name: "Arista: Add vlans"
       arista.eos.eos_vlans:
-        state: gathered
-      register: vlans
-
-    - name: "Arista: Show output: vlans"
-      debug:
-        var: vlans
-
-    - name: "Arista: Show output: vlans.gathered"
-      debug:
-        var: vlans.gathered
+        state: merged
+        config:
+          - name: HERP
+            vlan_id: 2
+          - name: DERP
+            vlan_id: 3
 ```
 
+This playbook contains a single "Add VLANs" play, which in turn contains a single **eos_vlans** task. The play is set to only run on hosts belonging to the EOS group, which is SW-1 and SW-2. The **eos_vlans** task is set to **merge** two Vlans into the current configuration, HERP and DERP. 
 
-Resources:
-> https://docs.ansible.com/ansible/latest/collections/arista/eos/eos_vlans_module.html
+So far we have seen two states used by the **eos_vlans** task: **gathered** and **merged**. Others like **overridden**, **deleted**, etc. You can find them all in the documentation, just google for the module name. Since we don't want to delete or override any existing config, the **merged** state makes the most sense.
 
+I did add some funny output to the end of the **vlans_show** playbook in this chapter, let's see what it did:
+```
+TASK [Arista: Show output: vlans.gathered.0] 
+ok: [SW-1] =>
+    msg: Vlan 2 is named HERP
+ok: [SW-2] =>
+    msg: Vlan 2 is named HERP
+```
 
+Before we look to deeply, let's compare it to the corresponding task "code":
+```
+- name: "Arista: Show output: vlans.gathered.0"
+  debug:
+    msg: "Vlan {{ vlans.gathered.0.vlan_id }} is named {{ vlans.gathered.0.name }}"
+  when: "vlans.gathered | length > 0"
+```
 
+By drilling into the **vlans** variable, we were able to fetch the name and ID of the first VLAN in the **gathered** list and print it in the playbook output. Entries in a list are zero-indexed, meaning the first entry is 0, the second entry is 1, etc. 
+We had to add a **when** statement to the task to make sure it only runs when the list is not empty, as trying to access the first entry in an empty list will cause a playbook runtime error. 
 
+# Idempotency
+Ok, switching gears a bit. When we first ran the **vlans_add** playbook, we saw that the output for SW-1 and SW-2 showed the **Changed** state. If we run the playbook again, what output do we get?
 
+```
+(venv) emileli@clab:~/ansible-demo$ ansible-playbook playbook_arista_vlans_add.yml
 
+PLAY [Add VLANs] 
 
+TASK [Arista: Add vlans] 
+ok: [SW-2]
+ok: [SW-1]
+
+PLAY RECAP 
+SW-1                       : ok=1    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+SW-2                       : ok=1    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```
+
+This time the playbook said **ok** instead of **changed**. Also note that the playbook didn't crash or throw some error, even though it technically didn't do its job. It's job was to add two VLANs to the switches, but it did not do any such thing. 
+
+Although my arguments are a bit contrived here, I'm trying to highlight the purpose of idempotency. We want the playbooks we build to be predictable and consistent. If the end goal is to add a VLAN but the VLAN already exists, the end goal is still achieved. The playbook should be able to run multiple times, producing the same results each time. If the job is to delete a VLAN, but it has already been deleted, the palybook should still run just fine.
+
+This is why the **eos_vlans** module is state-based. We tell it what state we expect, and it makes sure to get us there. Since we can't provide any state in the **debug** tasks, I instead had to use the **when** statement to enforce idempotency. 
+Because I couldn't be sure that you would run my two playbooks in order while reading this chapter, I had to make sure that the playbook would not throw an error if you decided to run **vlans_show** before the VLANs had been added to the switch.
+
+That's it for now! Maybe some FortiOS stuff in the next chapter?
 

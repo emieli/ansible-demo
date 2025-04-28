@@ -14,7 +14,7 @@
       debug:
         var: vlans
 
-    - name: "Arista: Show output: vlans.gathered"
+    - name: "Arista: Show output: vlans.gathered.0"
       debug:
-        var: vlans.gathered
+        msg: "Vlan {{ vlans.gathered.0.vlan_id }} is named {{ vlans.gathered.0.name }}"
 
