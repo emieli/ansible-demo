@@ -11,7 +11,7 @@ ansible [core 2.18.5]
 
 To give some deeper explanation, we first create a new Python Virtual Environment (venv). This creates a local python environment in your ansible-demo folder. We then use the **source** command to enter our local environment before install the Ansible package. By installing packages in the venv we keep them local to this folder. So if we have multiple python projects running, each project has its own set of packages that won't conflict with other projects. This is a common best practice that is useful to follow.
 
-Once we have entered our venv, we upgrade PIP (package installer for python) to the latest version so that it can fetch the latest version of ansible for us. Then we finally install ansible. Once the install is complete, we check which version was run.
+Once we have entered our venv, we upgrade PIP (package installer for python) to the latest version so that it can fetch the latest version of ansible for us. Then we finally install ansible. Once the install is complete, we check which version was installed (2.18.5).
 
 If you want to exit the venv, enter the **deactivate** command. You shouldn't have to do this though.
 
