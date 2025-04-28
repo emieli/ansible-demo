@@ -153,14 +153,10 @@ In the second debug statement we only print the **vlans.gathered** output, givin
         var: vlans.gathered
 ```
 
+Next up is chapter 3:
+```
+git switch chapter-3
+```
 
 Resources:
 > https://docs.ansible.com/ansible/latest/collections/arista/eos/eos_vlans_module.html
-
-
-
-
-
-
-
-
