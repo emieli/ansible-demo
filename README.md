@@ -51,4 +51,25 @@ When the deployment is done, you will see output in this format:
 │                   │ ceos:4.33.2F               │         │ 3fff:172:20:20::2 │
 ╰───────────────────┴────────────────────────────┴─────────┴───────────────────╯
 ```
+*You can get this view again with the **clab inspect** command*
 
+If you want, you can try SSH:ing to one of the nodes. Default login is admin/admin:
+```
+emileli@clab:~/ansible-demo$ ssh admin@172.20.20.4
+(admin@172.20.20.4) Password:
+sw-1>ena
+sw-1#sh ip int brief
+                                                                              Address
+Interface         IP Address           Status       Protocol           MTU    Owner
+----------------- -------------------- ------------ -------------- ---------- -------
+Management0       172.20.20.4/24       up           up                1500
+
+sw-1#sh int desc
+Interface                      Status         Protocol           Description
+Et1                            up             up
+Et2                            up             up
+Ma0                            up             up
+sw-1#
+```
+
+Our environment is up and running! Let's do some actual Ansible work by hopping into chapter 1!
