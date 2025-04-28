@@ -36,9 +36,16 @@ We now have to tell Ansible which file to look in, so we have to create an ansib
 ```
 [defaults]
 inventory = ./hosts.yml
+
+gathering = explicit
+host_key_checking = False
 callback_result_format = yaml
 ```
-*I snuck in a line to make results be displayed in yaml format. The default fomat is json.*
+
+I snuck in a few more lines in the file while we have it open:
+- Display results in yaml format. The default fomat is json, which is not as easy to read.
+- Default "gathering" state is **implicit** which means the playbook will fetch a lot of data. By making it explcit, the playbooks will not automatically gather any data, making it run much faster.
+- Disable SSH host-key checking. Not a best practice, but useful in our lab environment.
 
 We can test that the inventory is loaded properly with the **ansible-inventory --list** command:
 ```
