@@ -87,7 +87,7 @@ EOS:
     ansible_password: admin
 ```
 
-Ansible now know to use the admin/admin credentials when connecting to the switches.
+Ansible now know to use the admin/admin credentials when connecting to the switches. Adding the credentials in clear-text like this is a bad idea, but as this is an introduction we'll start simple. Proper setups should use Ansible Vault to encrypt secrets.
 
 Knowing what variables and values are necessary is unfortunately not very straightforward. To know what ansible_connection to use, you have to look at the modules you're planning to use. For example, the **arista.eos** modules are built around netcommon.httpapi. How do I know which netcommon plugins it supports? That information is often tucked away at the bottom of the module documentation: https://docs.ansible.com/ansible/latest/collections/arista/eos/index.html
 
