@@ -122,6 +122,8 @@ The **main.yml** contain a list of tasks that should be run. These tasks are all
 In our case we open a SSH session to some device via the **admin@{{ hostvars[fgt]['ansible_host'] }}** command. This introduces another concept that we haven't touched on yet. Apart from the **groups** variable that we saw earlier, Ansible also provides a **hostvars** variable for use in our playbooks. The hostvars variable contain all hostvars information, including information that we provided in the inventory file. 
 In short, we can access the management IP-address of FW-1 by looking at **hostvars["FW-1"]['ansible_host']**. By wrapping this variable in **{{ }}** curly brackets, we tell Ansibel to print replace **hostvars[...** with 172.20.20.4. So the spawn command effectively becomes **spawn ssh admin@172.20.20.4**. 
 
+> **_NOTE:_** While I am glossing over the whole hostvars thing, feel free to run the **playbook_show_hostvars.yml** playbook to see what the hostvars looks like. 
+
 The curly brackets are used in Jinja templates to explain that the value of the variable inside the {{ }} should be printed in the template. Ansible makes heavy use of Jinja, although we haven't really looked that deep into it yet.
 
 To summarize the first task, connect to Fortigate via SSH, run some commands to create API-user **ansible** and generate an API access-token. All output is registered to the **output** variable in Ansible, mainly so that we can capture the access-token and do something with it.
@@ -131,6 +133,93 @@ The syntax may be very confusing. You will see the loop in action when you run t
 
 The third task prints the access-token to screen, just to make sure that we did indeed fetch the token and nothing else.
 
-Finally, we create a new **host_vars/** folder and writes the username and access-token to the **host_vars/FW-1.yml** file.
+Finally, we create a new **host_vars/** folder and writes the username and access-token to the **host_vars/FW-1.yml** file. This is what the file looks like after the playbook has run:
 
-### EXPLAIN HOST_VARS FOLDER ###
+**host_vars/FW-1.yml**:
+```yaml
+ansible_user: ansible
+ansible_httpapi_session_key: hc1sx0G1wn97H9zGbgq56js97pG8kp
+```
+
+# Folder host_vars
+Wait what, we're putting inventory in a separate folder? Yep! This is yet another design decision by Ansible to allow your inventory to scale. Having all inventory information in a single **hosts.yml** file will not scale once your network grows to hundreds or even thousands of network devices. Splitting it up into folders and per-device files help keep the inventory manageable. 
+The folder must be named **host_vars** and the filename must match the name of the node (case sensitive) with a **.yml** after to show that it's a yaml file. 
+
+Likewise, a **group_vars** folder can be created where a file exist for each group. We could use a **group_vars/EOS.yml** file, for example.
+
+There is an order of precedence for where Ansible prefer to fetch data as there may be multiple sources. I was unable to find the documentation link describing this behavior, but if you accidentally create the same key in two different files but stick two different values in them, one of the values will be overriding the other. Just something to keep in mind.
+
+# Can we get to the point?
+Ok, I've explained the new playbook enough. Let's actually run it. 
+
+```
+(venv) emileli@clab:~/ansible-demo$ ansible-playbook playbook_generate_fortios_access_token.yml
+
+PLAY [Localhost] 
+
+TASK [include_role : generate_fortios_access_token] 
+included: generate_fortios_access_token for localhost => (item=FW-1)
+
+TASK [generate_fortios_access_token : Create FW-1 API user and generate access-token]
+changed: [localhost]
+
+TASK [generate_fortios_access_token : Create access_token variable from 'NEW API key' line output] 
+skipping: [localhost] => (item=spawn ssh admin@172.20.20.4)
+skipping: [localhost] => (item=admin@172.20.20.4's password: )
+skipping: [localhost] => (item=client_input_hostkeys: convert key: Invalid key length)
+skipping: [localhost] => (item=fw-1 # config system api-user)
+skipping: [localhost] => (item=fw-1 (api-user) # edit ansible)
+skipping: [localhost] => (item=fw-1 (ansible) # set accprofile prof_admin)
+skipping: [localhost] => (item=fw-1 (ansible) # end)
+skipping: [localhost] => (item=fw-1 # execute api-user generate-key ansible)
+ok: [localhost] => (item=New API key: 4tg5qc1b7tGjhc6gmwjfhgbw1gdc68)
+skipping: [localhost] => (item=NOTE: The bearer of this API key will be granted all access privileges assigned to the api-user ansible.)
+skipping: [localhost] => (item=fw-1 # )
+
+TASK [generate_fortios_access_token : Print FW-1 access token] 
+ok: [localhost] =>
+    access_token: 4tg5qc1b7tGjhc6gmwjfhgbw1gdc68
+
+TASK [generate_fortios_access_token : Create host_vars/ folder] 
+ok: [localhost]
+
+TASK [generate_fortios_access_token : Save username to host_vars/FW-1.yml] 
+changed: [localhost]
+
+TASK [generate_fortios_access_token : Save access-token to host_vars/FW-1.yml] 
+changed: [localhost]
+
+PLAY RECAP 
+localhost                  : ok=7    changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```
+
+We can see the loop going through each line of output, skipping lines until it finds one where the text **NEW API Key** is present. We can then see that the access-token is extracted. The changes are seved to **host_vars/FW-1.yml**, just as discussed previously.
+
+Let's run two commands to verify that the playbook actually did anything:
+```
+(venv) emileli@clab:~/ansible-demo$ cat host_vars/FW-1.yml
+ansible_user: ansible
+ansible_httpapi_session_key: 4tg5qc1b7tGjhc6gmwjfhgbw1gdc68
+
+(venv) emileli@clab:~/ansible-demo$ ansible-inventory --host FW-1
+{
+    "ansible_host": "172.20.20.4",
+    "ansible_httpapi_session_key": "4tg5qc1b7tGjhc6gmwjfhgbw1gdc68",
+    "ansible_user": "ansible"
+}
+```
+
+We are now ready to use the Ansible module **fortinet.fortios** to Automate our Fortigate config, onward to the next chapter!
+
+```
+git switch chapter-5
+```
+
+
+
+
+
+
+
+
+ 
