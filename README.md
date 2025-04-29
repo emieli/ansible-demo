@@ -62,7 +62,7 @@ SW-2                       : ok=3    changed=0    unreachable=0    failed=0    s
 Ok, so two vlans were added: HERP (2) and DERP (3). Let's look at the playbook to verify that this was indeed the change it wanted to make.
 
 **playbook_arista_vlan_add.yml**:
-```
+```yaml
 (venv) emileli@clab:~/ansible-demo$ cat playbook_arista_vlans_add.yml
 ---
 - name: Add VLANs
@@ -99,7 +99,7 @@ Before we look to deeply, let's compare it to the corresponding task "code":
   when: "vlans.gathered | length > 0"
 ```
 
-By drilling into the **vlans** variable, we were able to fetch the name and ID of the first VLAN in the **gathered** list and print it in the playbook output. Entries in a list are zero-indexed, meaning the first entry is 0, the second entry is 1, etc. 
+By drilling further into the **vlans** variable, we were able to fetch the name and ID of the first VLAN in the **gathered** list and print it in the playbook output. Entries in a list are zero-indexed, meaning the first entry is 0, the second entry is 1, etc. 
 We had to add a **when** statement to the task to make sure it only runs when the list is not empty, as trying to access the first entry in an empty list will cause a playbook runtime error. 
 
 # Idempotency
@@ -121,10 +121,10 @@ SW-2                       : ok=1    changed=0    unreachable=0    failed=0    s
 
 This time the playbook said **ok** instead of **changed**. Also note that the playbook didn't crash or throw some error, even though it technically didn't do its job. It's job was to add two VLANs to the switches, but it did not do any such thing. 
 
-Although my arguments are a bit contrived here, I'm trying to highlight the purpose of idempotency. We want the playbooks we build to be predictable and consistent. If the end goal is to add a VLAN but the VLAN already exists, the end goal is still achieved. The playbook should be able to run multiple times, producing the same results each time. If the job is to delete a VLAN, but it has already been deleted, the palybook should still run just fine.
+Although my arguments are a bit contrived here, I'm trying to highlight the purpose of idempotency. We want the playbooks we build to be predictable and consistent. If the end goal is to add a VLAN but the VLAN already exists, the end goal is still achieved. The playbook should be able to run multiple times, producing the same results each time. If the job is to delete a VLAN, but it has already been deleted, the palybook should still run just fine. If your playbook breaks because it failed to delete a non-existent VLAN, it is not idempotent.
 
-This is why the **eos_vlans** module is state-based. We tell it what state we expect, and it makes sure to get us there. Since we can't provide any state in the **debug** tasks, I instead had to use the **when** statement to enforce idempotency. 
-Because I couldn't be sure that you would run my two playbooks in order while reading this chapter, I had to make sure that the playbook would not throw an error if you decided to run **vlans_show** before the VLANs had been added to the switch.
+This is why the **eos_vlans** module is state-based. We tell it what state we expect, and it makes sure to get us there. Since I can't provide any state in the **debug** tasks, I had to use the **when** statement to enforce idempotency. 
+I couldn't be sure that you would run my two playbooks in order while reading this chapter, so I had to make sure that the playbook would not throw an error if you decided to run **vlans_show** before any VLANs had been added to the switch.
 
 That's it for now! Maybe some FortiOS stuff in the next chapter?
 
