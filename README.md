@@ -87,7 +87,13 @@ EOS:
     ansible_password: admin
 ```
 
-Ansible now know to use the admin/admin credentials when connection.
+Ansible now know to use the admin/admin credentials when connecting to the switches.
+
+Knowing what variables and values are necessary is unfortunately not very straightforward. To know what ansible_connection to use, you have to look at the modules you're planning to use. For example, the **arista.eos** modules are built around netcommon.httpapi. How do I know which netcommon plugins it supports? That information is often tucked away at the bottom of the module documentation: https://docs.ansible.com/ansible/latest/collections/arista/eos/index.html
+
+To see which netcommon connection plugins are available and how to configure each, I find this to be the best resource: https://galaxy.ansible.com/ui/repo/published/ansible/netcommon/docs/
+
+Finding documentation examples of how to configure Ansible modules to use in your playbook is often the biggest hurdle in getting started. But if you use the above code snippet as an example, you should have a good starting point for adding other vendors to your playbooks.
 
 Ok, let's try again:
 ```
@@ -122,13 +128,13 @@ SW-1                       : ok=3    changed=0    unreachable=0    failed=0    s
 SW-2                       : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 ```
 
-Success! All tasks were completed. Let us take a moment to look at the generated output and compare it to the actual playbook below. A playbook contains a list of "Plays" to perform. In this playbook there is only a single play: "Show Arista VLANs". It's configured to run on two hosts, SW-1 and SW-2.
+Success! All tasks were completed. Let us take a moment to look at the generated output and compare it to the actual playbook below. A playbook contains of a list of "Plays" to perform. In this playbook there is only a single play: "Show Arista VLANs". It's configured to run on two hosts, SW-1 and SW-2.
 
-Our play contain three tasks. The first task uses the **eos_vlans** module which gather information about the VLANs configured on the switch. The result is registered in a variable named **vlans**.  The following two tasks are two **debug** tasks where the data fetched from the sswitch is printed to the Ansible playbook output.
+Our play contain three tasks. The first task uses the **eos_vlans** module which gather information about the VLANs configured on the switch. The result is registered in a variable named **vlans**. The following two tasks are **debug** tasks where the data fetched from the switch is printed to the Ansible playbook output.
 
 I chose to use two debug statements to illustrate how Ansible can "drill down" into variables to fetch specific values. For example, the first debug statement prints the full **vlans** output, which contains three key-value pairs: **changed**, **failed**, **gathered**. Since we only fetched data, nothing was changed. Fetching the data went well, there was no failure in doing so. Finally, the gathered key returned an empty list. We can see that it is a list by the **[]**, and we can see that it is empty because there is no text between the brackets.
 
-In the second debug statement we only print the **vlans.gathered** output, giving us the empty list. Drilling down like this is a very powerful feature, allowing Ansible to react to data that is fetched. In this example we only print the data that was returned, but Ansible can do more.
+In the second debug statement we only print the **vlans.gathered** output, giving us the empty list. Drilling down like this is a very powerful feature, allowing Ansible to process and modify specific values. In this example we only print the data that was returned, but Ansible can do more.
 
 **playbook_arista_vlans_show.yml**:
 ```yaml
