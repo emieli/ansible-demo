@@ -119,7 +119,7 @@ SW-1                       : ok=1    changed=0    unreachable=0    failed=0    s
 SW-2                       : ok=1    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 ```
 
-This time the playbook said **ok** instead of **changed**. Also note that the playbook didn't crash or throw some error, even though it technically didn't do its job. It's job was to add two VLANs to the switches, but it did not do any such thing. 
+This time the playbook said **ok** instead of **changed**. Also note that the playbook didn't crash or throw some error, even though it technically didn't do its job. Its job was to add two VLANs to the switches, but it technically didn't add any VLANs this time.
 
 Although my arguments are a bit contrived here, I'm trying to highlight the purpose of idempotency. We want the playbooks we build to be predictable and consistent. If the end goal is to add a VLAN but the VLAN already exists, the end goal is still achieved. The playbook should be able to run multiple times, producing the same results each time. If the job is to delete a VLAN, but it has already been deleted, the palybook should still run just fine. If your playbook breaks because it failed to delete a non-existent VLAN, it is not idempotent.
 
@@ -127,4 +127,7 @@ This is why the **eos_vlans** module is state-based. We tell it what state we ex
 I couldn't be sure that you would run my two playbooks in order while reading this chapter, so I had to make sure that the playbook would not throw an error if you decided to run **vlans_show** before any VLANs had been added to the switch.
 
 That's it for now! Maybe some FortiOS stuff in the next chapter?
+```
+git switch chapter-4
+```
 
