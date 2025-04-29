@@ -1,0 +1,10 @@
+---
+- name: "Localhost"
+  hosts: localhost
+  tasks:
+    - include_role:
+        name: generate_fortios_access_token
+      loop: "{{ groups.FORTIOS }}"
+      loop_control:
+        loop_var: fgt
+
