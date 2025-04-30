@@ -18,7 +18,7 @@ SW-1                       : ok=0    changed=0    unreachable=0    failed=1    s
 SW-2                       : ok=0    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
 ```
 
-That didn't go well. Ansible tried to use SSH to connect to the switch, but the SSH connection type is not supported by the Arista Ansible modules. Instead, it expects Ansible to communicate via Rest API (HTTPS). Let's fix this by editing our inventory file to look like this:
+That didn't go well. Ansible tried to use SSH to connect to the switch, but the SSH connection type is not supported by the Arista modules. Instead, it expects Ansible to communicate via Rest API (HTTPAPI). Let's fix this by editing our inventory file to look like this:
 
 **hosts.yml**:
 ```yaml
@@ -41,7 +41,7 @@ EOS:
     ansible_httpapi_validate_certs: false
 ```
 
-The above config creates a new group (EOS) and adds SW-1 and SW-2 as members. We then tell Ansible to use its HTTP-API module when communicating with these Arista switches. Ansible also need to know what OS the switches are, which we supply with the **ansible_network_os** line. Finally we tell Ansible to use HTTPS but not validate the certificate, as the Arista API certificate is self-signed.
+The above config creates a new group (EOS) and adds SW-1 and SW-2 as members. We then tell Ansible to use the netcommon HTTPAPI module when communicating with these Arista switches. Ansible also need to know what OS the switches are, which we supply with the **ansible_network_os** line. Finally we tell Ansible to use HTTPS but not validate the certificate, as the Arista API certificate is self-signed.
 
 Let's run the playbook again and see what happens:
 ```
@@ -109,7 +109,7 @@ SW-1                       : ok=0    changed=0    unreachable=0    failed=1    s
 SW-2                       : ok=0    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
 ```
 
-Yes, we got another error. I promise this is the last one. Let's make one last addition to **hosts.yml** in the **EOS** group: **ansible_become: true**. I'll trust you to place the variable in the correct location in the hosts file. The command is the equivalent of **enable** in Cisco IOS where you need to enter "privileged" mode before you are allowed to run some commands. Ansible calls this **become**, and has a similar meaning in Linux terminology where you need to do things as root.
+Yes, we got another error. I promise this is the last one. Let's make one last addition to **hosts.yml** in the **EOS** group: **ansible_become: true**. I'll trust you to place the variable in the correct location in the hosts file. The command is the equivalent of **enable** in Cisco IOS where you need to enter "privileged" mode before you are allowed to run some commands. Ansible calls this **become** and has a similar meaning in Linux terminology where you need to do things as root.
 
 Now that **ansible_become: true** has been added, we can try again:
 ```
@@ -155,7 +155,7 @@ In the second debug statement we only print the **vlans.gathered** output, givin
 **playbook_arista_vlans_show.yml**:
 ```yaml
 ---
-- name: Show Arista VLANs
+- name: Show Arista VLANs #
   hosts:
     - "SW-1"
     - "SW-2"
