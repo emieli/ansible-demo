@@ -127,4 +127,7 @@ This is why the **eos_vlans** module is state-based. We tell it what state we ex
 I couldn't be sure that you would run my two playbooks in order while reading this chapter, so I had to make sure that the playbook would not throw an error if you decided to run **vlans_show** before any VLANs had been added to the switch.
 
 That's it for now! Maybe some FortiOS stuff in the next chapter?
-
+```
+git switch chapter-4
+```
+https://github.com/emieli/ansible-demo/tree/chapter-4
