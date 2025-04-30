@@ -4,8 +4,15 @@
   ansible.builtin.shell: |
     set timeout 30
     spawn ssh admin@{{ hostvars[fgt]['ansible_host'] }}
-    expect "password: "
-    send "admin\n"
+    expect {
+      "This key is not known by any other names" {
+        send "yes\n"
+        exp_continue
+      }
+      "password: " {
+        send "admin\n"
+      }
+    }
     expect "fw-1 "
     send "config system api-user\n"
     expect "fw-1 "
