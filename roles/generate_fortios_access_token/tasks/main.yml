@@ -50,5 +50,8 @@
 
 - name: "Save access-token to host_vars/{{ fgt }}.yml"
   ansible.builtin.shell:
-    cmd: 'echo "ansible_httpapi_session_key: {{ access_token }}" >> host_vars/{{ fgt }}.yml'
+    cmd: 'echo "ansible_httpapi_session_key:" >> host_vars/{{ fgt }}.yml'
 
+- name: "Save access-token to host_vars/{{ fgt }}.yml"
+  ansible.builtin.shell:
+    cmd: 'echo "  access_token: {{ access_token }}" >> host_vars/{{ fgt }}.yml'
