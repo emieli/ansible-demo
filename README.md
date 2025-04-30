@@ -156,8 +156,4 @@ SW-2                       : ok=1    changed=0    unreachable=0    failed=0    s
 Success! We now have subinterfaces to match our VLANs! If you want to verify, feel free to ssh to the Fortigate and run **show system interface** and **get router info routing-table connected** to see that the interfaces exist and are active. You can even add a VLAN-interface to your switches on the different VLANs and attempt to ping between them.
 Note that this requires a firewall policy in the Fortigate **config firewall policy**, something that I won't cover here.
 
-I hope you're enjoying this as much as I am. Let's hop in to the next chapter to see what it's all about!
-```
-git switch chapter-6
-```
-https://github.com/emieli/ansible-demo/tree/chapter-6
+You have reached the end of my tutorial. I hope you're enjoyed walking through it as much as I enjoyed making it. I hope this helps you get started on your Ansible-journey and that you have an idea of something in your daily work that can be automated.
