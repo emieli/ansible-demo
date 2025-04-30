@@ -29,6 +29,7 @@ SITE01:
     SW-2:
       ansible_host: 172.20.20.2
 ```
+*run **clab inspect** to get management IP-addresses*
 
 We now have to tell Ansible which file to look in, so we have to create an ansible configuration file and make it look like below.
 
