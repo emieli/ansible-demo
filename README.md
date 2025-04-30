@@ -86,3 +86,4 @@ Next up is chapter 2:
 ```
 git switch chapter-2
 ```
+https://github.com/emieli/ansible-demo/tree/chapter-2
