@@ -85,17 +85,33 @@ EOS:
     ansible_httpapi_validate_certs: false
     ansible_user: admin
     ansible_password: admin
+    ansible_become: true
 ```
 
 Ansible now know to use the admin/admin credentials when connecting to the switches. Adding the credentials in clear-text like this is a bad idea, but as this is an introduction we'll start simple. Proper setups should use Ansible Vault to encrypt secrets.
 
-Knowing what variables and values are necessary is unfortunately not very straightforward. To know what ansible_connection to use, you have to look at the modules you're planning to use. For example, the **arista.eos** modules are built around netcommon.httpapi. How do I know which netcommon plugins it supports? That information is often tucked away at the bottom of the module documentation: https://docs.ansible.com/ansible/latest/collections/arista/eos/index.html
+Let's run it again:
+```
+(venv) emel02@clab:~/ansible-demo$ ansible-playbook playbook_arista_vlans_show.yml
 
-To see which netcommon connection plugins are available and how to configure each, I find this to be the best resource: https://galaxy.ansible.com/ui/repo/published/ansible/netcommon/docs/
+PLAY [Show Arista VLANs] 
 
-Finding documentation examples of how to configure Ansible modules to use in your playbook is often the biggest hurdle in getting started. But if you use the above code snippet as an example, you should have a good starting point for adding other vendors to your playbooks.
+TASK [Arista: Get vlans] 
+fatal: [SW-2]: FAILED! =>
+    changed: false
+    msg: Invalid input (privileged mode required)
+fatal: [SW-1]: FAILED! =>
+    changed: false
+    msg: Invalid input (privileged mode required)
 
-Ok, let's try again:
+PLAY RECAP 
+SW-1                       : ok=0    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
+SW-2                       : ok=0    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
+```
+
+Yes, we got another error. I promise this is the last one. Let's make one last addition to **hosts.yml** in the **EOS** group: **ansible_become: true**. I'll trust you to place the variable in the correct location in the hosts file. The command is the equivalent of **enable** in Cisco IOS where you need to enter "privileged" mode before you are allowed to run some commands. Ansible calls this **become**, and has a similar meaning in Linux terminology where you need to do things as root.
+
+Now that **ansible_become: true** has been added, we can try again:
 ```
 (venv) emileli@clab:~/ansible-demo$ ansible-playbook playbook_arista_vlans_show.yml
 
@@ -166,4 +182,6 @@ git switch chapter-3
 https://github.com/emieli/ansible-demo/tree/chapter-3
 
 Resources:
-> https://docs.ansible.com/ansible/latest/collections/arista/eos/eos_vlans_module.html
+- https://docs.ansible.com/ansible/latest/collections/arista/eos/eos_vlans_module.html
+- https://docs.ansible.com/ansible/latest/collections/arista/eos/index.html
+- https://galaxy.ansible.com/ui/repo/published/ansible/netcommon/docs/
