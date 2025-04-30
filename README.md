@@ -76,3 +76,4 @@ Our environment is up and running! Let's hop into Chapter 1 and to some Ansible 
 ```
 git switch chapter-1
 ```
+https://github.com/emieli/ansible-demo/tree/chapter-1
