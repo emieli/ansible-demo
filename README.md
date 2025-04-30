@@ -39,7 +39,11 @@ EOS:
     ansible_network_os: arista.eos.eos
     ansible_httpapi_use_ssl: true
     ansible_httpapi_validate_certs: false
+FORTIOS:
+  hosts:
+    FW-1:
 ```
+*I figure we also create FORTIOS group while we're at it*
 
 The above config creates a new group (EOS) and adds SW-1 and SW-2 as members. We then tell Ansible to use the netcommon HTTPAPI module when communicating with these Arista switches. Ansible also need to know what OS the switches are, which we supply with the **ansible_network_os** line. Finally we tell Ansible to use HTTPS but not validate the certificate, as the Arista API certificate is self-signed.
 
