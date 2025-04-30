@@ -160,3 +160,4 @@ I hope you're enjoying this as much as I am. Let's hop in to the next chapter to
 ```
 git switch chapter-6
 ```
+https://github.com/emieli/ansible-demo/tree/chapter-6
