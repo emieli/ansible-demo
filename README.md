@@ -80,7 +80,7 @@ Ok, so two vlans were added: HERP (2) and DERP (3). Let's look at the playbook t
 
 This playbook contains a single "Add VLANs" play, which in turn contains a single **eos_vlans** task. The play is set to only run on hosts belonging to the EOS group, which is SW-1 and SW-2. The **eos_vlans** task is set to **merge** two Vlans into the current configuration, HERP and DERP. 
 
-So far we have seen two states used by the **eos_vlans** task: **gathered** and **merged**. Others like **overridden**, **deleted**, etc. You can find them all in the documentation, just google for the module name. Since we don't want to delete or override any existing config, the **merged** state makes the most sense.
+So far we have seen two states used by the **eos_vlans** task: **gathered** and **merged**. Other states such as **overridden** and **deleted**, also exist but are not covered here. You can find them all in the documentation, just google for the module name. Since we don't want to delete or override any existing config, the **merged** state makes the most sense.
 
 I did add some funny output to the end of the **vlans_show** playbook in this chapter, let's see what it did:
 ```
