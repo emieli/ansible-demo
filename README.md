@@ -72,8 +72,15 @@ Let's look at the contents of the main.yml file.
   ansible.builtin.shell: |
     set timeout 30
     spawn ssh admin@{{ hostvars[fgt]['ansible_host'] }}
-    expect "password: "
-    send "admin\n"
+    expect {
+      "This key is not known by any other names" {
+        send "yes\n"
+        exp_continue
+      }
+      "password: " {
+        send "admin\n"
+      }
+    }
     expect "fw-1 "
     send "config system api-user\n"
     expect "fw-1 "
@@ -81,7 +88,7 @@ Let's look at the contents of the main.yml file.
     expect "fw-1 "
     send "set accprofile prof_admin\n"
     expect "fw-1 "
-    send "end\n"
+     send "end\n"
     expect "fw-1 "
     send "execute api-user generate-key ansible\n"
     expect "fw-1 "
