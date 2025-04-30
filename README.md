@@ -163,6 +163,7 @@ Next up is chapter 3:
 ```
 git switch chapter-3
 ```
+https://github.com/emieli/ansible-demo/tree/chapter-3
 
 Resources:
 > https://docs.ansible.com/ansible/latest/collections/arista/eos/eos_vlans_module.html
