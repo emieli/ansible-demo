@@ -89,7 +89,9 @@ EOS:
     ansible_httpapi_validate_certs: false
     ansible_user: admin
     ansible_password: admin
-    ansible_become: true
+FORTIOS:
+  hosts:
+    FW-1:
 ```
 
 Ansible now know to use the admin/admin credentials when connecting to the switches. Adding the credentials in clear-text like this is a bad idea, but as this is an introduction we'll start simple. Proper setups should use Ansible Vault to encrypt secrets.
