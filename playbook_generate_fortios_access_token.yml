@@ -7,4 +7,4 @@
       loop: "{{ groups.FORTIOS }}"
       loop_control:
         loop_var: fgt
-
+      when: hostvars[fgt]['ansible_httpapi_session_key'] is undefined
