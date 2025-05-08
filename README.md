@@ -19,7 +19,7 @@ If you want to exit the venv, enter the **deactivate** command. You shouldn't ha
 Now that Ansible is installed, we need to build our Ansible inventory so that it can interact with FW-1, SW-1 and SW-2. Feel free to do this in vim or nano. The file should be named **hosts.yml**. 
 
 **hosts.yml**:
-```
+```yaml
 SITE01:
   hosts:
     FW-1:
@@ -34,7 +34,7 @@ SITE01:
 We now have to tell Ansible which file to look in, so we have to create an ansible configuration file and make it look like below.
 
 **ansible.cfg**:
-```
+```ini
 [defaults]
 inventory = ./hosts.yml
 
@@ -49,7 +49,7 @@ I snuck in a few more lines in the file while we have it open:
 - Disable SSH host-key checking. Not a best practice, but useful in our lab environment.
 
 We can test that the inventory is loaded properly with the **ansible-inventory --list** command:
-```
+```json
 $ ansible-inventory --list
 {
     "SITE01": {
