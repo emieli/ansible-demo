@@ -261,4 +261,6 @@ git switch chapter-5
 https://github.com/emieli/ansible-demo/tree/chapter-5
 
 Resources:
-https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html
+- https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html
+- https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_loops.html
+- https://docs.ansible.com/ansible/latest/collections/ansible/builtin/blockinfile_module.html
