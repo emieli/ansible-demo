@@ -100,13 +100,13 @@ EOS:
     SW-1:
     SW-2:
   vars:
-    ansible_become: true
     ansible_connection: ansible.netcommon.httpapi
     ansible_network_os: arista.eos.eos
     ansible_httpapi_use_ssl: false
     ansible_httpapi_validate_certs: false
     ansible_user: admin
     ansible_password: admin
+    ansible_become: true
 FORTIOS:
   hosts:
     FW-1:
@@ -153,7 +153,17 @@ SW-1                       : ok=1    changed=0    unreachable=0    failed=0    s
 SW-2                       : ok=1    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 ```
 
-Success! We now have subinterfaces to match our VLANs! If you want to verify, feel free to ssh to the Fortigate and run **show system interface** and **get router info routing-table connected** to see that the interfaces exist and are active. You can even add a VLAN-interface to your switches on the different VLANs and attempt to ping between them.
-Note that this requires a firewall policy in the Fortigate **config firewall policy**, something that I won't cover here.
+Success! We now have subinterfaces to match our VLANs! If you want to verify, feel free to ssh to the Fortigate and run **show system interface** and **get router info routing-table connected** to see that the interfaces exist and are active. 
 
+# Limit
+The hosts used in this playbook are EOS and FORTIOS which include all switches/firewalls, respectively. Our inventory only contain a single **SITE01** location, but imagine we added a **SITE02** that contained FW-2, SW-3 and SW-4 (yes, the names are stupid). If we were to then run this playbook, our HERP and DERP vlans would be created on both sites. You may want this on the switches, but we probably don't want to create the **10.1.3.0/24** subnet on multiple sites. 
+
+The simplest solution to this problem is to add the **--limit SITE01** to the end of your playbook as shown below. This ensures that the playbook will only run on EOS/FORTIOS devices that belong to the **SITE01** location. 
+```
+(venv) emileli@clab:~/ansible-demo$ ansible-playbook playbook_arista_vlans_add.yml --limit SITE01
+(venv) emileli@clab:~/ansible-demo$ ansible-playbook playbook_arista_vlans_add.yml --limit SITE01 --limit FORTIOS
+```
+*The second line show that multiple limits can be added. In this case the playbook will only run FW-1 tasks.*
+
+# The end?
 You have reached the end of my tutorial. I hope you're enjoyed walking through it as much as I enjoyed making it. I hope this helps you get started on your Ansible-journey and that you have an idea of something in your daily work that can be automated.
