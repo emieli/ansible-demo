@@ -44,14 +44,12 @@
     path: "host_vars"
     state: directory
 
-- name: "Save username to host_vars/{{ fgt }}.yml"
-  ansible.builtin.shell:
-    cmd: 'echo "ansible_user: ansible" > host_vars/{{ fgt }}.yml'
+- name: "Generate host_vars/{{ fgt }}.yml"
+  ansible.builtin.blockinfile:
+    create: true
+    path: host_vars/{{ fgt }}.yml
+    block: |
+      ansible_user: ansible
+      ansible_httpapi_session_key:
+        access_token: {{ access_token }}
 
-- name: "Save access-token to host_vars/{{ fgt }}.yml"
-  ansible.builtin.shell:
-    cmd: 'echo "ansible_httpapi_session_key:" >> host_vars/{{ fgt }}.yml'
-
-- name: "Save access-token to host_vars/{{ fgt }}.yml"
-  ansible.builtin.shell:
-    cmd: 'echo "  access_token: {{ access_token }}" >> host_vars/{{ fgt }}.yml'
