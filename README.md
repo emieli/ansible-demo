@@ -9,11 +9,22 @@ $ source venv/bin/activate
 ansible [core 2.18.5]
 ```
 
-To give some deeper explanation, we first create a new Python Virtual Environment (venv). This creates a local python environment in your ansible-demo folder. We then use the **source** command to enter our local environment before install the Ansible package. By installing packages in the venv we keep them local to this folder. So if we have multiple python projects running, each project has its own set of packages that won't conflict with other projects. This is a common best practice that is useful to follow.
+To give some deeper explanation, we first create a new Python Virtual Environment (venv). This creates a local Python environment in your ansible-demo folder. We then use the **source** command to enter the environment before installing the Ansible package. By installing packages in the venv we keep them local to this folder. So if we have multiple python projects running, each project has its own set of packages that won't conflict with other projects. This is a common best practice that is useful to follow.
+
+To show that the binary changes, we can run these commands:
+```
+(venv) $ deactivate
+$ which python3
+/usr/bin/python3
+
+$ source venv/bin/activate
+(venv) $ which python3
+/home/emileli/ansible-demo/venv/bin/python3
+```
 
 Once we have entered our venv, we upgrade PIP (package installer for python) to the latest version so that it can fetch the latest version of ansible for us. Then we finally install ansible. Once the install is complete, we check which version was installed (2.18.5).
 
-If you want to exit the venv, enter the **deactivate** command. You shouldn't have to do this though.
+If you want to exit the venv, execute the **deactivate** command. You shouldn't have to do this though.
 
 ## Create Ansible Inventory file
 Now that Ansible is installed, we need to build our Ansible inventory so that it can interact with FW-1, SW-1 and SW-2. Feel free to do this in vim or nano. The file should be named **hosts.yml**. 
