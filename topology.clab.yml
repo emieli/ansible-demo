@@ -10,5 +10,5 @@ topology:
       kind: fortinet_fortigate
       image: vrnetlab/vr-fortios:7.0.17
   links:
-    - endpoints: ["fw-1:eth2", "sw-1:eth1"]
+    - endpoints: ["fw-1:eth1", "sw-1:eth1"]
     - endpoints: ["sw-1:eth2", "sw-2:eth1"]
