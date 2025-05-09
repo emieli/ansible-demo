@@ -13,17 +13,17 @@
         send "admin\n"
       }
     }
-    expect "fw-1 "
+    expect "{{ fgt | lower }} "
     send "config system api-user\n"
-    expect "fw-1 "
+    expect "{{ fgt | lower }} "
     send "edit ansible\n"
-    expect "fw-1 "
+    expect "{{ fgt | lower }} "
     send "set accprofile prof_admin\n"
-    expect "fw-1 "
-     send "end\n"
-    expect "fw-1 "
+    expect "{{ fgt | lower }} "
+    send "end\n"
+    expect "{{ fgt | lower }} "
     send "execute api-user generate-key ansible\n"
-    expect "fw-1 "
+    expect "{{ fgt | lower }} "
     send "exit\n"
   args:
     executable: /usr/bin/expect
@@ -52,4 +52,3 @@
       ansible_user: ansible
       ansible_httpapi_session_key:
         access_token: {{ access_token }}
-
