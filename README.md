@@ -199,7 +199,7 @@ Ok, I've explained the new playbook enough. Let's actually run it.
 PLAY [Localhost] 
 
 TASK [include_role : generate_fortios_access_token] 
-included: generate_fortios_access_token for localhost => (item=FW-1)
+included: generate_fortios_access_token for localhost => (line=FW-1)
 
 TASK [generate_fortios_access_token : Create FW-1 API user and generate access-token] 
 changed: [localhost]
@@ -215,13 +215,13 @@ skipping: [localhost] => (line=)
 skipping: [localhost] => (line=fw-1 (api-user) # edit ansible)
 skipping: [localhost] => (line=)
 skipping: [localhost] => (line=)
-skipping: [localhost] => (item=fw-1 (ansible) # set accprofile prof_admin)
+skipping: [localhost] => (line=fw-1 (ansible) # set accprofile prof_admin)
 skipping: [localhost] => (line=)
 skipping: [localhost] => (line=)
-skipping: [localhost] => (item=fw-1 (ansible) # end)
+skipping: [localhost] => (line=fw-1 (ansible) # end)
 skipping: [localhost] => (line=)
 skipping: [localhost] => (line=)
-skipping: [localhost] => (item=fw-1 # execute api-user generate-key ansible)
+skipping: [localhost] => (line=fw-1 # execute api-user generate-key ansible)
 skipping: [localhost] => (line=)
 skipping: [localhost] => (line=)
 ok: [localhost] => (line=New API key: 7zhm31qHfqtnHd00NzfbQ01c34nbk8)
