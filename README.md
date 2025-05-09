@@ -96,7 +96,9 @@ FORTIOS:
 
 Ansible now know to use the admin/admin credentials when connecting to the switches. Adding the credentials in clear-text like this is a bad idea, but as this is an introduction we'll start simple. Proper setups should use Ansible Vault to encrypt secrets.
 
-Let's run it again:
+> **_NOTE:_** Run **ansible-inventory --list** again to see how the new group variables have been populated to the SW-1/SW-2 switches.
+
+Let's run the playbook again:
 ```
 (venv) emel02@clab:~/ansible-demo$ ansible-playbook playbook_arista_vlans_show.yml
 
