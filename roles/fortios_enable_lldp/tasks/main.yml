@@ -8,6 +8,7 @@
   register: result
 
 # Only pause if LLDP was not already enabled
-- ansible.builtin.pause:
+- name: "Wait for LLDP packet to be sent"
+  ansible.builtin.pause:
     seconds: 5
   when: result.changed

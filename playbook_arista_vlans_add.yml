@@ -46,7 +46,7 @@
             vlan_id: 3
 
     - include_role:
-        name: arista_trunk
+        name: arista_trunk_ports
 
     - include_role:
         name: arista_stp_root
