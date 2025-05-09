@@ -1,44 +1,10 @@
 ---
-- name: "Arista"
-  hosts: "EOS"
-  tasks:
-    - name: "Add vlans"
-      arista.eos.eos_vlans:
-        state: merged
-        config:
-          - name: HERP
-            vlan_id: 2
-          - name: DERP
-            vlan_id: 3
-
-    - name: "Gather lldp interfaces facts from the device"
-      arista.eos.eos_command:
-        commands:
-          - command: show lldp neighbors
-            output: json
-      register: lldp_neighbors
-
-    - debug:
-        var: lldp_neighbors.stdout.0.lldpNeighbors
-
-    - name: "Enable VLANs on trunk ports"
-      arista.eos.eos_config:
-        parents: interface {{ nbr.port }}
-        lines:
-          - switchport mode trunk
-          - switchport trunk allowed vlan add 2
-          - switchport trunk allowed vlan add 3
-      loop: "{{ lldp_neighbors.stdout.0.lldpNeighbors }}"
-      loop_control:
-        loop_var: nbr
-      when: 
-        - '"Ethernet" in nbr.port'
-        - '"fw-" in nbr.neighborDevice or "sw-" in nbr.neighborDevice'
-
-
 - name: "Fortigate"
-  hosts: FORTIOS
+  hosts: FW-1
   tasks:
+    - include_role:
+        name: fortios_enable_lldp
+
     - name: "Add vlan HERP"
       fortinet.fortios.fortios_system_interface:
         vdom: "root"
@@ -66,3 +32,22 @@
           type: "vlan"
           vlanid: 3
           vdom: "root"
+
+- name: "Arista"
+  hosts: "EOS"
+  tasks:
+    - name: "Add vlans"
+      arista.eos.eos_vlans:
+        state: merged
+        config:
+          - name: HERP
+            vlan_id: 2
+          - name: DERP
+            vlan_id: 3
+
+    - include_role:
+        name: arista_trunk
+
+    - include_role:
+        name: arista_stp_root
+

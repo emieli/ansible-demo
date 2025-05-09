@@ -1,7 +1,0 @@
-- name: "Set STP root"
-  hosts:
-    - SW-1
-    - SW-2
-  tasks:
-    - include_role:
-        name: spanning_tree_root

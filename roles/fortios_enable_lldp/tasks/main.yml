@@ -1,0 +1,13 @@
+- name: "Fortigate: Enable LLDP"
+  fortinet.fortios.fortios_system_interface:
+    vdom: "root"
+    state: "present"
+    system_interface:
+      name: "port2"
+      lldp_transmission: enable
+  register: result
+
+# Only pause if LLDP was not already enabled
+- ansible.builtin.pause:
+    seconds: 5
+  when: result.changed

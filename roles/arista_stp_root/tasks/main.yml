@@ -1,14 +1,11 @@
 ---
 
-- name: "Gather lldp interfaces facts from the device"
+- name: "Get LLDP neighbors"
   arista.eos.eos_command:
     commands: 
       - command: show lldp neighbors
         output: json
   register: lldp_neighbors
-
-- debug:
-    var: lldp_neighbors.stdout.0.lldpNeighbors
 
 - name: "Set STP root"
   arista.eos.eos_config:
