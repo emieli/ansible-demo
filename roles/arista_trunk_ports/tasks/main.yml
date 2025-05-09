@@ -1,0 +1,20 @@
+---
+
+- name: "Get LLDP neighbors"
+  arista.eos.eos_command:
+    commands: 
+      - command: show lldp neighbors
+        output: json
+  register: lldp_neighbors
+
+# Make FW-SW and SW-SW trunk ports
+- name: "Configure trunk ports"
+  arista.eos.eos_config:
+    lines: switchport mode trunk
+    parents: interface {{ nbr.port }}
+  loop: "{{ lldp_neighbors.stdout.0.lldpNeighbors }}"
+  loop_control:
+    loop_var: nbr
+  when: 
+    - '"Ethernet" in nbr.port'
+    - '"fw-" in nbr.neighborDevice or "sw-" in nbr.neighborDevice'
