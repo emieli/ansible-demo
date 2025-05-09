@@ -1,169 +1,218 @@
-# Chapter 5: Configure Fortigate subinterfaces
-Just creating the VLANs on the switches typically isn't good enough. The devices on that VLAN need some way to exit their local subnet and talk to other devices on your network. We need a default gateway. This is where our lovely Fortigate firewall comes. It will act as default gateway and perform inter-vlan routing while doing some of that sweet security-enchancing stateful inspection.
+# Chapter 6: Trunk switchports & STP root bridge
+To show what more Ansible can do, let's implement some more features. One such important feature is making FW-SW and SW-SW interfaces into trunk switchports. There's little point creating VLANs if your switchports won't forward the traffic. Another "important" feature is deciding which switch should be Spanning-Tree root bridge. All switches have the same priority by default, so the switch MAC-address is typically what decides who becomes STP root. To force SW-1 (who is closest to the firewall) to become STP root bridge, we need to make some config changes.
 
-I have taken the liberty of extending the playbook to include some Fortigate tasks. Let's review them:
+# STP Root Bridge
+We will use LLDP to decide which switch should become STP root bridge, specifically by checking if the switch has FW-1 as a LLDP neighbor. If they are neighbors, we make that switch STP root. We have to do this in a few steps:
+
+## 1. Enable LLDP on Fortigate
+I have created two new roles that are run in the order shown below.
 
 **playbook_arista_vlans_add.yml**:
 ```yaml
+- name: "Fortigate"
+  hosts: FW-1
+  tasks:
+    - include_role:
+        name: fortios_enable_lldp
+
 - name: "Arista"
   hosts: "EOS"
   tasks:
-    - name: "Add vlans"
-      arista.eos.eos_vlans:
-        state: merged
-        config:
-          - name: HERP
-            vlan_id: 2
-          - name: DERP
-            vlan_id: 3
+    - include_role:
+        name: arista_stp_root
+```
 
-- name: "Fortigate"
-  hosts: FORTIOS
+First we enable LLDP on the Fortigate interface, let's see what that looks like.
+
+**roles/fortios_enable_lldp/tasks/main.yml**:
+```yaml
+---
+- name: "Fortigate: Enable LLDP"
+  fortinet.fortios.fortios_system_interface:
+    vdom: "root"
+    state: "present"
+    system_interface:
+      name: "port2"
+      lldp_transmission: enable
+  register: result
+
+# Only pause if LLDP was not already enabled
+- ansible.builtin.pause:
+    seconds: 5
+  when: result.changed
+```
+
+We have two tasks. The first tasks enables LLDP transmissions on port2. We save the result to variable **result**. The second task checks if the first task completed with status **changed** and if so, it pauses for a few seconds. This is to allow the LLDP process to send out an LLDP packet to SW-1 before the playbook continues. We don't want the playbook to pause if LLDP is already enabled, hence the **when: result.changed**.
+
+That's all on the Fortigate.
+
+## 2. Make one switch STP root
+The second role in our playbook is **arista_stp_root**, ensuring that the switch directly connected to our firewall become STP root. Let's examine it below.
+
+**roles/arista_stp_root/tasks/main.yml**:
+```yaml
+---
+- name: "Get LLDP neighbors"
+  arista.eos.eos_command:
+    commands:
+      - command: show lldp neighbors
+        output: json
+  register: lldp_neighbors
+
+- name: "Set STP root"
+  arista.eos.eos_config:
+    lines: spanning-tree mst 0 priority 8192
+  loop: "{{ lldp_neighbors.stdout.0.lldpNeighbors }}"
+  loop_control:
+    loop_var: nbr
+  when: '"fw-" in nbr.neighborDevice'
+```
+
+First we fetch LLDP neighbors and save the output to variable **lldp_neighbors**. In the second task we apply the line **spanning-tree mst 0 priority 8192**, but only if one of our neighbors has **fw-** in its name. Priority 8192 is better than the default 32768, making it pretty much guaranteed that this switch will become STP root.
+
+Alright, this is going great. On to the next task!
+
+# Trunk switchports
+Just like we used LLDP to find the switch connected to our firewall, we will use LLDP to figure out which switchports to turn into trunk-ports. Any port with a **fw-** or **sw-** neighbor should become a trunk port. Let's add it to the playbook.
+
+**playbook_arista_vlans_add.yml**:
+```yaml
+[...]
+
+- name: "Arista"
+  hosts: "EOS"
   tasks:
-    - name: "Add vlan HERP"
-      fortinet.fortios.fortios_system_interface:
-        vdom: "root"
-        state: "present"
-        system_interface:
-          allowaccess:
-            - "ping"
-          interface: "port2"
-          ip: "10.1.2.1/24"
-          name: "HERP"
-          type: "vlan"
-          vlanid: 2
-
-    - name: "Add vlan DERP"
-      fortinet.fortios.fortios_system_interface:
-        vdom: "root"
-        state: "present"
-        system_interface:
-          allowaccess:
-            - "ping"
-          interface: "port2"
-          ip: "10.1.3.1/24"
-          name: "HERP"
-          type: "vlan"
-          vlanid: 3
+    - include_role:
+        name: arista_trunk_ports
 ```
 
-The playbook now adds two subinterfaces to our Fortigate firewall: HERP and DERP. HERP (vlan 2) is configured with IP-address 10.1.2.1/24 and DERP (vlan 3) is configured with IP-address 10.1.3.1/24. The two subinterfaces are attached to the physical **port2** interface which connects to **SW-1**. The **present** state provides idempotency, ensuring the interfaces exist. 
+We have added the **arista_trunk_ports** role to the playbook. Its contents are shown below.
 
-Let's run the playbook to apply:
+**roles/arista_trunk_ports/tasks/main.yml**:
+```yaml
+---
+- name: "Get LLDP neighbors"
+  arista.eos.eos_command:
+    commands:
+      - command: show lldp neighbors
+        output: json
+  register: lldp_neighbors
+
+# Make FW-SW and SW-SW trunk ports
+- name: "Configure trunk ports"
+  arista.eos.eos_config:
+    lines: switchport mode trunk
+    parents: interface {{ nbr.port }}
+  loop: "{{ lldp_neighbors.stdout.0.lldpNeighbors }}"
+  loop_control:
+    loop_var: nbr
+  when:
+    - '"Ethernet" in nbr.port'
+    - '"fw-" in nbr.neighborDevice or "sw-" in nbr.neighborDevice'
+```
+
+Just like last time, we fetch LLDP neighbors and save the output to **lldp_neighbors**. We then loop through all LLDP neighbors. If we find a **fw-** or **sw-** neighbor AND the switchport has "Ethernet" in the name, we make it a trunk-port. More config can be added here, like **switchport trunk allowed vlan add X,Y**. Perhaps you could add that yourself as an exercise?
+
+# Don't repeat yourself (DRY)
+Both roles **arista_stp_root** and **arista_trunk_ports** run the same "Get LLDP neighbors" code block that produces exactly the same output. There is a programming principle called DRY proclaiming that duplicated code is a sign of poor design. Each copy must be maintained over time which is extra work and, some say, extra complexity. This is partly why Ansible Roles exist, to avoid unnecessary code duplication. I would like to weigh in on this topic.
+
+My personal take is that DRY is overrated. Duplicated code is typically only a problem if you see yourself writing the same thing 3-4+ times. I much prefer the principle of "Locality of behavior" which recommends to "keep related code close together". For example, if we look at the playbook, all it says is that it runs the two roles. There is no information to indicate that these roles rely on a variable called **lldp_neighbors**.
+
+We could "fix" the duplication by creating a third **arista_lldp_neighbors** role and ensure that we run it first. This makes the **lldp_neighbors** variable accessible to the roles that follow it. This fixes the problem, but creates another. We now have a hidden dependency between these three roles, making the order these roles run very important. If we come back in six months and start reordering these roles, we might break the playbook without realizing it.  
+This is the reason why I have the "Get LLDP neighbors" task in both roles. If we need this information inside the role, it's best to fetch the information as part of the job that role performs. This make the role easy to understand while minimizing its coupling to other parts of our code-base. We can change the format of **lldp_neighbors** in one role without it affecting the other role. Yes, we do the same thing twice, but it's not an expensive operation and the benefits is easier-to-read code with few dependencies. 
+
+Ok, rant over. While this may feel like an overkill topic for you, it's likely that you will find yourself thinking about these things when your Ansible code-base grows. 
+
+# Run the playbook
+Yes. I have been talking for long enough now. Let's run the playbook. 
+
+**playbook_arista_vlans_add.yml**:
 ```
 (venv) emileli@clab:~/ansible-demo$ ansible-playbook playbook_arista_vlans_add.yml
 
-PLAY [Arista] 
-
-TASK [Add vlans] 
-ok: [SW-2]
-ok: [SW-1]
-
 PLAY [Fortigate] 
 
-TASK [Add vlan HERP] 
-fatal: [FW-1]: UNREACHABLE! =>
-    changed: false
-    msg: 'Failed to connect to the host via ssh: ansible@172.20.20.4: Permission denied
-        (publickey,password).'
-    unreachable: true
+TASK [include_role : fortios_enable_lldp] 
+included: fortios_enable_lldp for FW-1
 
-PLAY RECAP 
-FW-1                       : ok=0    changed=0    unreachable=1    failed=0    skipped=0    rescued=0    ignored=0
-SW-1                       : ok=1    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
-SW-2                       : ok=1    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
-```
-
-Ha! Did you really think it would be that easy? Ansible defaults to SSH connectivity, which **fortinet.fortios** doesn't support. So we need to tell Ansible to use HTTPAPI, just like we did with our Arista switches. Let's update our inventory config, but this time we spice it up by creating a **group_vars** folder and placing the config inside of the **FORTIOS.yml** file.
-
-**group_vars/FORTIOS.yml**:
-```yaml
-ansible_connection: ansible.netcommon.httpapi
-ansible_network_os: fortinet.fortios.fortios
-ansible_httpapi_use_ssl: false
-ansible_httpapi_validate_certs: false
-```
-*We have to set **use_ssl** to false as I'm using a trial VM with limited cryptographic features*
-
-I'll also paste the **hosts.yml** for reference, although no changes should be necessary here:
-```yaml
-SITE01:
-  hosts:
-    FW-1:
-      ansible_host: 172.20.20.4
-    SW-1:
-      ansible_host: 172.20.20.3
-    SW-2:
-      ansible_host: 172.20.20.2
-EOS:
-  hosts:
-    SW-1:
-    SW-2:
-  vars:
-    ansible_connection: ansible.netcommon.httpapi
-    ansible_network_os: arista.eos.eos
-    ansible_httpapi_use_ssl: false
-    ansible_httpapi_validate_certs: false
-    ansible_user: admin
-    ansible_password: admin
-    ansible_become: true
-FORTIOS:
-  hosts:
-    FW-1:
-```
-
-We can verify that the settings have been applied correctly with this command:
-```json
-(venv) emileli@clab:~/ansible-demo$ ansible-inventory --host FW-1
-{
-    "ansible_connection": "ansible.netcommon.httpapi",
-    "ansible_host": "172.20.20.4",
-    "ansible_httpapi_session_key": {
-        "access_token": "4tg5qc1b7tGjhc6gmwjfhgbw1gdc68"
-    },
-    "ansible_httpapi_use_ssl": false, 
-    "ansible_httpapi_validate_certs": false,
-    "ansible_network_os": "fortinet.fortios.fortios",
-    "ansible_user": "ansible"
-}
-```
-
-
-If your config looks like this, you can run the playbook again:
-```
-(venv) emileli@clab:~/ansible-demo$ ansible-playbook playbook_arista_vlans_add.yml
-
-PLAY [Arista] 
-
-TASK [Add vlans] 
-ok: [SW-2]
-ok: [SW-1]
-
-PLAY [Fortigate] 
-
-TASK [Add vlan HERP] 
+TASK [fortios_enable_lldp : Fortigate: Enable LLDP] 
 changed: [FW-1]
+
+TASK [fortios_enable_lldp : Wait for LLDP packet to be sent] 
+Pausing for 5 seconds
+(ctrl+C then 'C' = continue early, ctrl+C then 'A' = abort)
+ok: [FW-1]
+
+TASK [Add vlan HERP] 
+ok: [FW-1]
 
 TASK [Add vlan DERP] 
-changed: [FW-1]
+ok: [FW-1]
+
+PLAY [Arista] 
+
+TASK [Add vlans] 
+ok: [SW-1]
+ok: [SW-2]
+
+TASK [include_role : arista_trunk_ports] 
+included: arista_trunk_ports for SW-1, SW-2
+
+TASK [arista_trunk_ports : Get LLDP neighbors] 
+ok: [SW-2]
+ok: [SW-1]
+
+TASK [arista_trunk_ports : Configure trunk ports] 
+changed: [SW-2] => (item={'port': 'Ethernet1', 'neighborDevice': 'sw-1', 'neighborPort': 'Ethernet2', 'ttl': 120})
+changed: [SW-1] => (item={'port': 'Ethernet1', 'neighborDevice': 'fw-1', 'neighborPort': 'port2', 'ttl': 120})
+skipping: [SW-2] => (item={'port': 'Management0', 'neighborDevice': 'sw-1', 'neighborPort': 'Management0', 'ttl': 120})
+changed: [SW-1] => (item={'port': 'Ethernet2', 'neighborDevice': 'sw-2', 'neighborPort': 'Ethernet1', 'ttl': 120})
+skipping: [SW-1] => (item={'port': 'Management0', 'neighborDevice': 'sw-2', 'neighborPort': 'Management0', 'ttl': 120})
+
+TASK [include_role : arista_stp_root] 
+included: arista_stp_root for SW-1, SW-2
+
+TASK [arista_stp_root : Get LLDP neighbors] 
+ok: [SW-1]
+ok: [SW-2]
+
+TASK [arista_stp_root : Set STP root] 
+skipping: [SW-2] => (item={'port': 'Ethernet1', 'neighborDevice': 'sw-1', 'neighborPort': 'Ethernet2', 'ttl': 120})
+skipping: [SW-2] => (item={'port': 'Management0', 'neighborDevice': 'sw-1', 'neighborPort': 'Management0', 'ttl': 120})
+skipping: [SW-2]
+changed: [SW-1] => (item={'port': 'Ethernet1', 'neighborDevice': 'fw-1', 'neighborPort': 'port2', 'ttl': 120})
+skipping: [SW-1] => (item={'port': 'Ethernet2', 'neighborDevice': 'sw-2', 'neighborPort': 'Ethernet1', 'ttl': 120})
+skipping: [SW-1] => (item={'port': 'Management0', 'neighborDevice': 'sw-2', 'neighborPort': 'Management0', 'ttl': 120})
 
 PLAY RECAP 
-FW-1                       : ok=2    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
-SW-1                       : ok=1    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
-SW-2                       : ok=1    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+FW-1                       : ok=4    changed=0    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0
+SW-1                       : ok=7    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+SW-2                       : ok=6    changed=1    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0
 ```
 
-Success! We now have subinterfaces to match our VLANs! If you want to verify, feel free to ssh to the Fortigate and run **show system interface** and **get router info routing-table connected** to see that the interfaces exist and are active. 
-
-# Limit
-The hosts used in this playbook are EOS and FORTIOS which include all switches/firewalls, respectively. Our inventory only contain a single **SITE01** location, but imagine we added a **SITE02** that contained FW-2, SW-3 and SW-4 (yes, the names are stupid). If we were to then run this playbook, our HERP and DERP vlans would be created on both sites. You may want this on the switches, but we probably don't want to create the **10.1.3.0/24** subnet on multiple sites. 
-
-The simplest solution to this problem is to add the **--limit SITE01** to the end of your playbook as shown below. This ensures that the playbook will only run on EOS/FORTIOS devices that belong to the **SITE01** location. 
+As we can see above, LLDP is enabled on the Fortigate followed by a 5-second pause. Our switches then configure their switchports and SW-1 changes its STP priority to 8192 to make it the root bridge. We can verify the changes by connecting to the switch via SSH (admin/admin):
 ```
-(venv) emileli@clab:~/ansible-demo$ ansible-playbook playbook_arista_vlans_add.yml --limit SITE01
-(venv) emileli@clab:~/ansible-demo$ ansible-playbook playbook_arista_vlans_add.yml --limit SITE01 --limit FORTIOS
-```
-*The second line show that multiple limits can be added. In this case the playbook will only run FW-1 tasks.*
+(venv) emileli@clab:~/ansible-demo$ ssh admin@172.20.20.3
+(admin@172.20.20.3) Password:
+sw-1>ena
+sw-1#show lldp neighbors
+Port          Neighbor Device ID       Neighbor Port ID    TTL
+---------- ------------------------ ---------------------- ---
+Et1           fw-1                     port2               120
+Et2           sw-2                     Ethernet1           120
 
-# The end?
-You have reached the end of my tutorial. I hope you're enjoyed walking through it as much as I enjoyed making it. I hope this helps you get started on your Ansible-journey and that you have an idea of something in your daily work that can be automated.
+sw-1#show spanning-tree
+  This bridge is the root
+  Bridge ID  Priority 8192
+
+sw-1#show interfaces trunk
+Port            Mode            Status          Native vlan
+Et1             trunk           trunking        1
+Et2             trunk           trunking        1
+
+Port            Vlans in spanning tree forwarding state
+Et1             1-3
+Et2             1-3
+```
+
+That's it for this chapter! We focused on fetching data and using **loops** with **when** statements to make strategic configuration decisions. Thanks for reading.
