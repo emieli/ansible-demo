@@ -69,9 +69,9 @@ So we know that the role exist somewhere in our ansible code base. Where does it
 A new **roles** folder has magically appeared. Inside it lives a second folder named **generate_fortios_access_token** which seems to perfectly match the name of the **include_role** in our playbook, a weird coincidence? This is exactly how Ansible finds what role to run, by looking for a folder with the same name inside the **roles** folder. Ansible also automatically looks for a **tasks** subfolder, and automatically looks for a **main.yml** for tasks to run. This is the folder structure that Ansible has designed, and one that we should follow in order to build scalable Ansible projects. 
 
 # Generating the API access-token
-Let us examine the main.yml file.
+Let us examine the **roles/generate_fortios_access_token/tasks/main.yml** file. I have split it up into sections, one per task.
 
-**roles/generate_fortios_access_token/tasks/main.yml**:
+### First task
 ```yaml
 - name: "Create {{ fgt }} API user and generate access-token"
   ansible.builtin.shell: |
@@ -86,31 +86,75 @@ Let us examine the main.yml file.
         send "admin\n"
       }
     }
-    expect "fw-1 "
+    expect "{{ fgt | lower }} "
     send "config system api-user\n"
-    expect "fw-1 "
+    expect "{{ fgt | lower }} "
     send "edit ansible\n"
-    expect "fw-1 "
+    expect "{{ fgt | lower }} "
     send "set accprofile prof_admin\n"
-    expect "fw-1 "
-     send "end\n"
-    expect "fw-1 "
+    expect "{{ fgt | lower }} "
+    send "end\n"
+    expect "{{ fgt | lower }} "
     send "execute api-user generate-key ansible\n"
-    expect "fw-1 "
+    expect "{{ fgt | lower }} "
     send "exit\n"
   args:
     executable: /usr/bin/expect
   register: output
+```
+We tell our "localhost" to use its local shell to run **/usr/bin/expect** which then connect to our Fortigate via SSH. Once connected we push FortiOS commands to create a API-user and generate a key. So even though Ansible technically can't communicate with the Fortigate yet via the **fortinet.fortios** Ansible module, we can still use SSH to prepare these things.  
 
+We open a SSH session via the **spawn ssh admin@{{ hostvars[fgt]['ansible_host'] }}** command. This introduces another concept that we haven't touched on yet. Apart from the **groups** variable that we saw earlier, Ansible also provides a **hostvars** variable for use in our playbooks. The hostvars variable contain all hostvars information, including information that we provided in the inventory file.
+
+By looking at **hostvars["FW-1"]['ansible_host']**, Ansible get access to the Management IP of FW-1. By wrapping this variable in **{{ }}** curly brackets, we tell Ansible to replace it with 172.20.20.4. So the spawn command effectively becomes **spawn ssh admin@172.20.20.4**. The curly brackets are used in Jinja templates to explain that the value of the variable inside the {{ }} should be printed in the template. Ansible makes heavy use of Jinja.
+
+> **_NOTE:_** Invoking shell from a script is a common way for hackers to access your system. My task above simply trusts that **'ansible_host'** contains an IP-address and nothing else, but some malicious user could make the input **'127.0.0.1 && reboot'** or worse. The same is true for the **fgt** variable. We should use a **when** statement to perform input validation before the task is allowed to run.
+
+> **_NOTE:_** Feel free to run **playbook_show_hostvars.yml** to see what the hostvars variable contains. It's a very useful variable. 
+
+### Second task
+```yaml
 - name: "Create access_token variable from 'NEW API key' line output"
-  set_fact:
-    access_token:  "{{ item.split()[-1] }}"
+  ansible.builtin.set_fact:
+    access_token: "{{ line.split()[-1] }}"
   when: '"New API key" in item'
   loop: "{{ output.stdout_lines }}"
+  loop_control:
+    loop_var: line
+```
+This task makes more sense if we read from bottom to top. We start by looping through all received **output** line by line. We are looking for the access-token that the Fortigate generated for us. We use the **when** statement to tell the loop when we are on the correct line by checking if the text "NEW API key" exist on that line. If not the loop continues to the next line until all output lines have been iterated over.
 
+Once a line with the "NEW API key" output is found, the **set_fact** module saves the output to **access_token**. By splitting the line every time we encounter a whitespace, we get a list of words. The **\[-1\]** syntax means that we capture the last word on the line. The end result is that only the token is saved to **access_token**. I'll try to visualize what's happening below:
+
+Our **line** variable looks like this:
+```
+New API key: 7zhm31qHfqtnHd00NzfbQ01c34nbk8
+```
+
+**line.split()** turns the line into this, a list of strings:
+```python
+["New", "API", "key:", "7zhm31qHfqtnHd00NzfbQ01c34nbk8"]
+```
+
+**line.split()\[-1\]** turns the output into this:
+```
+7zhm31qHfqtnHd00NzfbQ01c34nbk8
+```
+*This is what's being saved to the **access_token** variable.*
+
+> **_NOTE:_** The line.split() syntax is actually Python code, which Jinja templates allow.
+
+### Third task
+```yaml
 - name: "Print {{ fgt }} access token"
   debug:
     var: access_token
+```
+
+The third task simply print **access_token** to screen so that we can verify that it did fetch the token and nothing else.
+
+### Fourth & Fifth task
+```yaml
 
 - name: "Create host_vars/ folder"
   ansible.builtin.file:
@@ -126,38 +170,18 @@ Let us examine the main.yml file.
       ansible_httpapi_session_key:
         access_token: {{ access_token }}
 ```
-
-The **main.yml** file contain a list of tasks that should be run. These tasks are all run on **localhost**, which is our linux VM. The first task is an **ansible.builtin.shell** that specifically run the **usr/bin/except** binary. The point of **expect** is to run certain commands in a shell, and based on the expected output run other commands.
-
-We are telling our local linux VM to SSH to a server and run a bunch of commands on it. In our case we open a SSH session to some device via the **admin@{{ hostvars[fgt]['ansible_host'] }}** command. This introduces another concept that we haven't touched on yet. Apart from the **groups** variable that we saw earlier, Ansible also provides a **hostvars** variable for use in our playbooks. The hostvars variable contain all hostvars information, including information that we provided in the inventory file.
-
-In short, we can access the management IP-address of FW-1 by looking at **hostvars["FW-1"]['ansible_host']**. By wrapping this variable in **{{ }}** curly brackets, we tell Ansible to replace **hostvars[...** with 172.20.20.4. So the spawn command effectively becomes **spawn ssh admin@172.20.20.4**. The curly brackets are used in Jinja templates to explain that the value of the variable inside the {{ }} should be printed in the template. Ansible makes heavy use of Jinja, although we haven't really looked that deep into it yet.
-
-> **_NOTE:_** While I am glossing over the whole hostvars thing, feel free to run **playbook_show_hostvars.yml** to see what the hostvars variable contains. It's a very useful variable. 
-
-### First task
-connect to Fortigate via SSH, run some commands to create API-user **ansible** and generate an API access-token. All output is registered to the **output** variable in Ansible, mainly so that we can capture the access-token and do something with it.
-
-### Second task
-we loop through all lines of the registered output, searching for a line containing the "NEW API key" output. Once that line is found, we split the line every time we encounter a whitespace and fetch the last entry as our access-token. We save the access-token to variable **access_token**.
-The syntax may be very confusing. You will see the loop in action when you run the playbook later, so hopefully it will make more sense then.
-
-### Third task
-Print the access-token to screen, just to make sure that we did indeed fetch the token and nothing else.
-
-### Fourth and fifth task
-Finally, we create a new **host_vars/** folder, writing username and access-token to the **host_vars/FW-1.yml** file. This is what the file looks like after the playbook has run:
+The last two tasks create a new **host_vars/** folder, writing username and access-token to the **host_vars/FW-1.yml** file. This is what the file looks like after the playbook has run:
 
 **host_vars/FW-1.yml**:
 ```yaml
 # BEGIN ANSIBLE MANAGED BLOCK
 ansible_user: ansible
 ansible_httpapi_session_key:
-  access_token: 94Nctmy6gjr6fNfcfNrxGg0ncz5xzn
+  access_token: 7zhm31qHfqtnHd00NzfbQ01c34nbk8
 # END ANSIBLE MANAGED BLOCK
 ```
 
-Let's breathe. It is OK if you need to read this section one more time. What the playbook does is connect to the Fortigate via SSH, run some commands to generate an API-user and access-token. The playbook is recording all output for us, allowing us to capture the access-token from the output and save it to a file. Still confused? Go back and read it again. Feel ok? Continue onwards :)
+Let's breathe. It is OK if you need to read this section one more time, it's using plenty of new features.
 
 # Folder host_vars
 Wait what, we're putting inventory stuff in a separate folder? Yep! This is yet another design decision by Ansible to allow your inventory to scale. Having all inventory information in a single **hosts.yml** file will not scale once your network grows to hundreds or even thousands of network devices. Splitting it up into folders and per-device files help keep the inventory manageable. 
@@ -181,30 +205,30 @@ TASK [generate_fortios_access_token : Create FW-1 API user and generate access-t
 changed: [localhost]
 
 TASK [generate_fortios_access_token : Create access_token variable from 'NEW API key' line output] 
-skipping: [localhost] => (item=spawn ssh admin@172.20.20.4)
-skipping: [localhost] => (item=)
-skipping: [localhost] => (item=admin@172.20.20.4's password: )
-skipping: [localhost] => (item=client_input_hostkeys: convert key: Invalid key length)
-skipping: [localhost] => (item=fw-1 # config system api-user)
-skipping: [localhost] => (item=)
-skipping: [localhost] => (item=)
-skipping: [localhost] => (item=fw-1 (api-user) # edit ansible)
-skipping: [localhost] => (item=)
-skipping: [localhost] => (item=)
+skipping: [localhost] => (line=spawn ssh admin@172.20.20.4)
+skipping: [localhost] => (line=)
+skipping: [localhost] => (line=admin@172.20.20.4's password: )
+skipping: [localhost] => (line=client_input_hostkeys: convert key: Invalid key length)
+skipping: [localhost] => (line=fw-1 # config system api-user)
+skipping: [localhost] => (line=)
+skipping: [localhost] => (line=)
+skipping: [localhost] => (line=fw-1 (api-user) # edit ansible)
+skipping: [localhost] => (line=)
+skipping: [localhost] => (line=)
 skipping: [localhost] => (item=fw-1 (ansible) # set accprofile prof_admin)
-skipping: [localhost] => (item=)
-skipping: [localhost] => (item=)
+skipping: [localhost] => (line=)
+skipping: [localhost] => (line=)
 skipping: [localhost] => (item=fw-1 (ansible) # end)
-skipping: [localhost] => (item=)
-skipping: [localhost] => (item=)
+skipping: [localhost] => (line=)
+skipping: [localhost] => (line=)
 skipping: [localhost] => (item=fw-1 # execute api-user generate-key ansible)
-skipping: [localhost] => (item=)
-skipping: [localhost] => (item=)
-ok: [localhost] => (item=New API key: 7zhm31qHfqtnHd00NzfbQ01c34nbk8)
-skipping: [localhost] => (item=)
-skipping: [localhost] => (item=NOTE: The bearer of this API key will be granted all access privileges assigned to the api-user ansible.)
-skipping: [localhost] => (item=)
-skipping: [localhost] => (item=fw-1 # )
+skipping: [localhost] => (line=)
+skipping: [localhost] => (line=)
+ok: [localhost] => (line=New API key: 7zhm31qHfqtnHd00NzfbQ01c34nbk8)
+skipping: [localhost] => (line=)
+skipping: [localhost] => (line=NOTE: The bearer of this API key will be granted all access privileges assigned to the api-user ansible.)
+skipping: [localhost] => (line=)
+skipping: [localhost] => (line=fw-1 # )
 
 TASK [generate_fortios_access_token : Print FW-1 access token] 
 ok: [localhost] =>
@@ -237,21 +261,13 @@ localhost                  : ok=0    changed=0    unreachable=0    failed=0    s
 ```
 *FW-1 is skipped as the token already exist. Very nice!*
 
-Let's run two commands to verify that the playbook actually did anything:
+We can verify that the new variables and values show up in the inventory:
 ```
-(venv) emileli@clab:~/ansible-demo$ cat host_vars/FW-1.yml
-# BEGIN ANSIBLE MANAGED BLOCK
-ansible_user: ansible
-ansible_httpapi_session_key:
-  access_token: 7zhm31qHfqtnHd00NzfbQ01c34nbk8
-# END ANSIBLE MANAGED BLOCK
-
 (venv) emileli@clab:~/ansible-demo$ ansible-inventory --host FW-1 --yaml
 ansible_host: 172.20.20.4
 ansible_httpapi_session_key:
   access_token: 7zhm31qHfqtnHd00NzfbQ01c34nbk8
 ansible_user: ansible
-
 ```
 
 We are now ready to use the Ansible module **fortinet.fortios** to Automate our Fortigate config, onward to the next chapter!
