@@ -117,7 +117,7 @@ By looking at **hostvars["FW-1"]['ansible_host']**, Ansible get access to the Ma
 - name: "Create access_token variable from 'NEW API key' line output"
   ansible.builtin.set_fact:
     access_token: "{{ line.split()[-1] }}"
-  when: '"New API key" in item'
+  when: '"New API key" in line'
   loop: "{{ output.stdout_lines }}"
   loop_control:
     loop_var: line
