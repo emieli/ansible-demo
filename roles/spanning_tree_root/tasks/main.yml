@@ -1,7 +1,20 @@
-- name: Gather lldp interfaces facts from the device
-  arista.eos.lldp_interfaces:
-    state: gathered
-  result: lldp_neighbors
+---
+
+- name: "Gather lldp interfaces facts from the device"
+  arista.eos.eos_command:
+    commands: 
+      - command: show lldp neighbors
+        output: json
+  register: lldp_neighbors
 
 - debug:
-    var: lldp_neighbors
+    var: lldp_neighbors.stdout.0.lldpNeighbors
+
+- name: "Set STP root"
+  arista.eos.eos_config:
+    lines: spanning-tree mst 0 priority 8192
+  loop: "{{ lldp_neighbors.stdout.0.lldpNeighbors }}"
+  loop_control:
+    loop_var: nbr
+  when: '"fw-" in nbr.neighborDevice'
+ 
