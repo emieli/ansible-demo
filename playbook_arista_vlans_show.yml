@@ -17,4 +17,4 @@
     - name: "Arista: Show output: vlans.gathered.0"
       debug:
         msg: "Vlan {{ vlans.gathered.0.vlan_id }} is named {{ vlans.gathered.0.name }}"
-
+      when: vlans.gathered | length > 0
