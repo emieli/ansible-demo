@@ -11,6 +11,31 @@
           - name: DERP
             vlan_id: 3
 
+    - name: "Gather lldp interfaces facts from the device"
+      arista.eos.eos_command:
+        commands:
+          - command: show lldp neighbors
+            output: json
+      register: lldp_neighbors
+
+    - debug:
+        var: lldp_neighbors.stdout.0.lldpNeighbors
+
+    - name: "Enable VLANs on trunk ports"
+      arista.eos.eos_config:
+        parents: interface {{ nbr.port }}
+        lines:
+          - switchport mode trunk
+          - switchport trunk allowed vlan add 2
+          - switchport trunk allowed vlan add 3
+      loop: "{{ lldp_neighbors.stdout.0.lldpNeighbors }}"
+      loop_control:
+        loop_var: nbr
+      when: 
+        - '"Ethernet" in nbr.port'
+        - '"fw-" in nbr.neighborDevice or "sw-" in nbr.neighborDevice'
+
+
 - name: "Fortigate"
   hosts: FORTIOS
   tasks:
