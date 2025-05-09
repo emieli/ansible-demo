@@ -30,10 +30,12 @@
   register: output
 
 - name: "Create access_token variable from 'NEW API key' line output"
-  set_fact:
-    access_token:  "{{ item.split()[-1] }}"
+  ansible.builtin.set_fact:
+    access_token:  "{{ line.split()[-1] }}"
   when: '"New API key" in item'
   loop: "{{ output.stdout_lines }}"
+  loop_control:
+    loop_var: line
 
 - name: "Print {{ fgt }} access token"
   debug:
