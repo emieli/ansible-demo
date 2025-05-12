@@ -59,6 +59,22 @@ The second role in our playbook is **arista_stp_root**, ensuring that the switch
         output: json
   register: lldp_neighbors
 
+### OUTPUT ###
+# ok: [SW-1] =>
+#   lldp_neighbors:
+#     changed: false
+#     failed: false
+#     stdout:
+#     - lldpNeighbors:
+#       - neighborDevice: fw-1
+#         neighborPort: port2
+#         port: Ethernet1
+#         ttl: 120
+#       - neighborDevice: sw-2
+#         neighborPort: Ethernet1
+#         port: Ethernet2
+#         ttl: 120
+
 - name: "Set STP root"
   arista.eos.eos_config:
     lines: spanning-tree mst 0 priority 8192
@@ -98,6 +114,26 @@ We have added the **arista_trunk_ports** role to the playbook. Its contents are 
         output: json
   register: lldp_neighbors
 
+### OUTPUT ###
+# ok: [SW-1] =>
+#   lldp_neighbors:
+#     changed: false
+#     failed: false
+#     stdout:
+#     - lldpNeighbors:
+#       - neighborDevice: fw-1
+#         neighborPort: port2
+#         port: Ethernet1
+#         ttl: 120
+#       - neighborDevice: sw-2
+#         neighborPort: Ethernet1
+#         port: Ethernet2
+#         ttl: 120
+#       - neighborDevice: sw-2
+#         neighborPort: Management0
+#         port: Management0
+#         ttl: 120
+
 # Make FW-SW and SW-SW trunk ports
 - name: "Configure trunk ports"
   arista.eos.eos_config:
@@ -111,7 +147,12 @@ We have added the **arista_trunk_ports** role to the playbook. Its contents are 
     - '"fw-" in nbr.neighborDevice or "sw-" in nbr.neighborDevice'
 ```
 
-Just like last time, we fetch LLDP neighbors and save the output to **lldp_neighbors**. We then loop through all LLDP neighbors. If we find a **fw-** or **sw-** neighbor AND the switchport has "Ethernet" in the name, we make it a trunk-port. More config can be added here, like **switchport trunk allowed vlan add X,Y**. Perhaps you could add that yourself as an exercise?
+Just like last time, we fetch LLDP neighbors and save the output to **lldp_neighbors**. We then loop through all LLDP neighbors. A switchport becomes a trunk-port if it contains "Ethernet" AND has a **fw-** or **sw-** neighbor. As an exercise for you, why are both **when** statements required? What happens if we omit the first one?
+
+<details>
+  <summary>Answer</summary>
+  The output above show that we get sw-2 as LLDP neighbor on the Ma0 port, which is strictly used for management. To avoid our management-port becoming a trunk-port, we need the "Ethernet in nbr.port" in our when statement. 
+</details>
 
 # Don't repeat yourself (DRY)
 Both roles **arista_stp_root** and **arista_trunk_ports** run the same "Get LLDP neighbors" code block that produces exactly the same output. There is a programming principle called DRY proclaiming that duplicated code is a sign of poor design. Each copy must be maintained over time which is extra work and, some say, extra complexity. This is partly why Ansible Roles exist, to avoid unnecessary code duplication. I would like to weigh in on this topic.
