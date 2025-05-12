@@ -7,6 +7,26 @@
         output: json
   register: lldp_neighbors
 
+### OUTPUT ###
+# ok: [SW-1] =>
+#   lldp_neighbors:
+#     changed: false
+#     failed: false
+#     stdout:
+#     - lldpNeighbors:
+#       - neighborDevice: fw-1
+#         neighborPort: port2
+#         port: Ethernet1
+#         ttl: 120
+#       - neighborDevice: sw-2
+#         neighborPort: Ethernet1
+#         port: Ethernet2
+#         ttl: 120
+#       - neighborDevice: sw-2
+#         neighborPort: Management0
+#         port: Management0
+#         ttl: 120
+
 # Make FW-SW and SW-SW trunk ports
 - name: "Configure trunk ports"
   arista.eos.eos_config:
