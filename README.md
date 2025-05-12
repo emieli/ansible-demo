@@ -36,6 +36,13 @@ First we enable LLDP on the Fortigate interface, let's see what that looks like.
       lldp_transmission: enable
   register: result
 
+### OUTPUT ###
+# ok: [FW-1] =>
+#   result:
+#     changed: true
+#     diff: {}
+#     failed: false
+
 # Only pause if LLDP was not already enabled
 - ansible.builtin.pause:
     seconds: 5
@@ -44,7 +51,7 @@ First we enable LLDP on the Fortigate interface, let's see what that looks like.
 
 We have two tasks. The first tasks enables LLDP transmissions on port2. We save the result to variable **result**. The second task checks if the first task completed with status **changed** and if so, it pauses for a few seconds. This is to allow the LLDP process to send out an LLDP packet to SW-1 before the playbook continues. We don't want the playbook to pause if LLDP is already enabled, hence the **when: result.changed**.
 
-That's all on the Fortigate.
+That's all we need to do on the Fortigate!
 
 ## 2. Make one switch STP root
 The second role in our playbook is **arista_stp_root**, ensuring that the switch directly connected to our firewall become STP root. Let's examine it below.
