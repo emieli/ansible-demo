@@ -153,7 +153,27 @@ SW-1                       : ok=1    changed=0    unreachable=0    failed=0    s
 SW-2                       : ok=1    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 ```
 
-Success! We now have subinterfaces to match our VLANs! If you want to verify, feel free to ssh to the Fortigate and run **show system interface** and **get router info routing-table connected** to see that the interfaces exist and are active. 
+Success! We now have subinterfaces to match our VLANs! If you want to verify, feel free to ssh to the Fortigate and run **show system interface** and **get router info routing-table connected** to see that the interfaces exist and are active:
+```
+(venv) emileli@clab:~/ansible-demo$ ssh admin@clab-emileli-fw-1
+Warning: Permanently added 'clab-emileli-fw-1' (ED25519) to the list of known hosts.
+admin@clab-emileli-fw-1's password:
+fw-1 # show system interface HERP
+config system interface
+    edit "HERP"
+        set vdom "root"
+        set ip 10.1.2.1 255.255.255.0
+        set allowaccess ping
+        set interface "port2"
+        set vlanid 2
+    next
+end
+
+fw-1 # get router info routing-table connected
+Routing table for VRF=0
+C       10.1.2.0/24 is directly connected, HERP
+C       10.1.3.0/24 is directly connected, DERP
+```
 
 # Limit
 The hosts used in this playbook are EOS and FORTIOS which include all switches/firewalls, respectively. Our inventory only contain a single **SITE01** location, but imagine we added a **SITE02** that contained FW-2, SW-3 and SW-4 (yes, the names are stupid). If we were to then run this playbook, our HERP and DERP vlans would be created on both sites. You may want this on the switches, but we probably don't want to create the **10.1.3.0/24** subnet on multiple sites. 
@@ -165,5 +185,10 @@ The simplest solution to this problem is to add the **--limit SITE01** to the en
 ```
 *The second line show that multiple limits can be added. In this case the playbook will only run FW-1 tasks.*
 
-# The end?
-You have reached the end of my tutorial. I hope you're enjoyed walking through it as much as I enjoyed making it. I hope this helps you get started on your Ansible-journey and that you have an idea of something in your daily work that can be automated.
+# Conclusion
+The playbook now also configure the Fortigate. Pretty cool. I hope you're enjoying the tutorial so far. In the next chapter we add some more config on our switches.
+
+```
+git switch chapter-6
+```
+https://github.com/emieli/ansible-demo/blob/chapter-6/README.md
