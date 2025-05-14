@@ -175,6 +175,35 @@ C       10.1.2.0/24 is directly connected, HERP
 C       10.1.3.0/24 is directly connected, DERP
 ```
 
+# Exercise
+It's time for you to build a playbook! The playbook should configure one or two firewall policies, permitting traffic between our HERP and DERP interfaces. 
+
+What such a policy looks like in Fortigate CLI:
+```
+config firewall policy
+    edit 2
+        set action accept
+        set dstaddr "all"
+        set dstintf "DERP"
+        set name "HERP TO DERP"
+        set schedule "always"
+        set service "PING" "HTTP" "HTTPS" "DNS"
+        set srcaddr "all"
+        set srcintf "HERP"
+    next
+end
+```
+
+Some clues for getting started:
+- https://docs.ansible.com/ansible/latest/collections/fortinet/fortios/fortios_firewall_policy_module.html
+
+<details>
+  <summary>Click for solution (If you get stuck)</summary>
+  https://github.com/emieli/ansible-demo/blob/chapter-5/.solution.yml
+</details>
+
+Give it your best shot and see how far you can get!
+
 # Limit
 The hosts used in this playbook are EOS and FORTIOS which include all switches/firewalls, respectively. Our inventory only contain a single **SITE01** location, but imagine we added a **SITE02** that contained FW-2, SW-3 and SW-4 (yes, the names are stupid). If we were to then run this playbook, our HERP and DERP vlans would be created on both sites. You may want this on the switches, but we probably don't want to create the **10.1.3.0/24** subnet on multiple sites. 
 
