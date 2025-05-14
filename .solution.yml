@@ -1,0 +1,26 @@
+---
+- name: "Fortigate"
+  hosts: FORTIOS
+  tasks:
+    - name: "Create 'HERP TO DERP' policy"
+      fortinet.fortios.fortios_firewall_policy:
+        vdom: root
+        state: present
+        firewall_policy:
+          action: accept
+          dstaddr:
+            - name: all
+          dstintf:
+            - name: DERP
+          name: HERP TO DERP
+          policyid: 2
+          schedule: always
+          service:
+            - name: PING
+            - name: HTTP
+            - name: HTTPS
+            - name: DNS
+          srcaddr:
+            - name: all
+          srcintf:
+            - name: HERP
