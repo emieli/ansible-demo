@@ -189,7 +189,7 @@ The folder must be named **host_vars** and the filename must match the name of t
 
 Likewise, a **group_vars** folder can be created where a file exist for each group. We could use a **group_vars/EOS.yml** file, for example.
 
-There is an order of precedence for where Ansible prefer to fetch data as there may be multiple sources. I was unable to find the documentation link describing this behavior, but if you accidentally create the same key in two different files but stick two different values in them, one of the values will be overriding the other. Just something to keep in mind.
+There is an order of precedence for where Ansible prefer to fetch data as there may be multiple sources. If you accidentally create the same key in two different files but stick two different values in them, one of the values will be overriding the other. Just something to keep in mind.
 
 # Can we run it already?
 Ok, I've explained the new playbook enough. Let's actually run it. 
@@ -281,3 +281,4 @@ Resources:
 - https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html
 - https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_loops.html
 - https://docs.ansible.com/ansible/latest/collections/ansible/builtin/blockinfile_module.html
+- https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_variables.html#understanding-variable-precedence
