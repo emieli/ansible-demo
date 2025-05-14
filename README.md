@@ -176,9 +176,9 @@ C       10.1.3.0/24 is directly connected, DERP
 ```
 
 # Exercise
-It's time for you to build a playbook! The playbook should configure one or two firewall policies, permitting traffic between our HERP and DERP interfaces. 
+It's time for you to build a playbook by yourself! The playbook should configure one or two firewall policies, allowing traffic to flow between our HERP and DERP interfaces. Name it **playbook_fortios_firewall_policy.yml**. It should contain a single play that run on FW-1. It should include a task for each policy you want to create. 
 
-What such a policy looks like in Fortigate CLI:
+This example policy show what we want the policy to look like in the Fortigate CLI:
 ```
 config firewall policy
     edit 2
@@ -206,7 +206,7 @@ Some clues for getting started:
 Give it your best shot and see how far you can get!
 
 # Limit
-The hosts used in this playbook are EOS and FORTIOS which include all switches/firewalls, respectively. Our inventory only contain a single **SITE01** location, but imagine we added a **SITE02** that contained FW-2, SW-3 and SW-4 (yes, the names are stupid). If we were to then run this playbook, our HERP and DERP vlans would be created on both sites. You may want this on the switches, but we probably don't want to create the **10.1.3.0/24** subnet on multiple sites. 
+Did you get the playbook working? Great job! Let's end this chapter with a bit of theory. The hosts used in this playbook are EOS and FORTIOS which include all switches/firewalls, respectively. Our inventory only contain a single **SITE01** location, but imagine we added a **SITE02** that contained FW-2, SW-3 and SW-4 (yes, the names are stupid). If we were to then run this playbook, our HERP and DERP vlans would be created on both sites. You may want this on the switches, but we probably don't want to create the **10.1.3.0/24** subnet on multiple sites. 
 
 The simplest solution to this problem is to add the **--limit SITE01** to the end of your playbook as shown below. This ensures that the playbook will only run on EOS/FORTIOS devices that belong to the **SITE01** location. 
 ```
