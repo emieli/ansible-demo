@@ -196,6 +196,7 @@ end
 
 Some clues for getting started:
 - https://docs.ansible.com/ansible/latest/collections/fortinet/fortios/fortios_firewall_policy_module.html
+- https://github.com/fortinet-ansible-dev/ansible-galaxy-fortios-collection/issues/102
 
 <details>
   <summary>Click for solution (If you get stuck)</summary>
