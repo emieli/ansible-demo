@@ -265,3 +265,8 @@ Et2             1-3
 ```
 
 That's it for this chapter! We focused on fetching data and using **loops** with **when** statements to make strategic configuration decisions. Thanks for reading.
+
+```
+git switch chapter-7
+```
+https://github.com/emieli/ansible-demo/edit/chapter-7/README.md
