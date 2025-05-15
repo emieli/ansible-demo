@@ -1,0 +1,13 @@
+- name: "Add vlan {{ id }} - {{ name }}"
+  fortinet.fortios.fortios_system_interface:
+    vdom: "root"
+    state: "present"
+    system_interface:
+      allowaccess:
+        - "ping"
+      interface: "port2"
+      ip: "10.1.{{ id }}.1/24"
+      name: "{{ name }}"
+      type: "vlan"
+      vlanid: "{{ id }}"
+      vdom: "root"

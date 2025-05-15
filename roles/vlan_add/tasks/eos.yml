@@ -1,0 +1,6 @@
+- name: "Add vlan {{ id }} - {{ name }}"
+  arista.eos.eos_vlans:
+    state: merged
+    config:
+      - name: "{{ name }}"
+        vlan_id: "{{ id }}"

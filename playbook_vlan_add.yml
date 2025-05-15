@@ -1,0 +1,37 @@
+---
+
+- name: Input validation
+  hosts: localhost
+  tasks:
+    - name: "Validate vlan ID"
+      ansible.builtin.assert:
+        that:
+          - id is defined
+          - id | int < 4095
+          - id | int > 1
+        msg: |
+          Vlan argument 'id' missing or not within 2-4094 range.
+          Example: ansible-playbook playbooks/vlan_add.yml -e id=123
+        quiet: true
+      any_errors_fatal: true
+
+    - name: "Validate vlan name"
+      ansible.builtin.assert:
+        that:
+          - name is defined
+          - name | length > 0
+          - name | length < 16
+        msg: |
+          Vlan argument 'name' missing, empty or too long.
+          Fortigate interface names must be 15 characters or less.
+          Example: ansible-playbook playbooks/vlan_add.yml -e name=FLERP
+        quiet: true
+      any_errors_fatal: true
+
+- name: "Add VLAN"
+  hosts:
+    - FORTIOS
+    - EOS
+  tasks:
+    - include_role:
+        name: vlan_add
