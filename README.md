@@ -158,7 +158,11 @@ ok: [SW-1]
 ```
 *--ask-vault-pass is still required, very good*
 
-That's it for this chapter!
+That's it for this chapter! The next chapter is the last one!
+```
+git switch chapter-8
+```
+https://github.com/emieli/ansible-demo/blob/chapter-8/README.md
 
 # Resources
 - https://docs.ansible.com/ansible/latest/cli/ansible-vault.html
