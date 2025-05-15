@@ -264,9 +264,10 @@ Et1             1-3
 Et2             1-3
 ```
 
-That's it for this chapter! We focused on fetching data and using **loops** with **when** statements to make strategic configuration decisions. Thanks for reading.
+That's it for this chapter! We focused on fetching data and using **loops** with **when** statements to make strategic configuration decisions. 
 
+You're doing great! Next up is Ansible Vault:
 ```
 git switch chapter-7
 ```
-https://github.com/emieli/ansible-demo/edit/chapter-7/README.md
+https://github.com/emieli/ansible-demo/blob/chapter-7/README.md
