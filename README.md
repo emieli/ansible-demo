@@ -78,9 +78,9 @@ Ok, so two vlans were added: HERP (2) and DERP (3). Let's look at the playbook t
             vlan_id: 3
 ```
 
-This playbook contains a single "Add VLANs" play, which in turn contains a single **eos_vlans** task. The play is set to only run on hosts belonging to the EOS group, which is SW-1 and SW-2. The **eos_vlans** task is set to **merge** two Vlans into the current configuration, HERP and DERP. 
+This playbook contains a single "Add VLANs" play, which in turn contains a single **eos_vlans** task. The play is set to only run on hosts belonging to the EOS group, which is SW-1 and SW-2. The **eos_vlans** task is set to **merge** two vlans into the current configuration, HERP and DERP. 
 
-So far we have seen two states used by the **eos_vlans** task: **gathered** and **merged**. Other states such as **overridden** and **deleted**, also exist but are not covered here. You can find them all in the documentation, just google for the module name. Since we don't want to delete or override any existing config, the **merged** state makes the most sense.
+So far we have seen two states used by the **eos_vlans** task: **gathered** and **merged**. Other states such as **overridden** and **deleted** exist but are not covered here. You can find them all in the documentation, just google for the module name. Since we don't want to delete or override any existing config, the **merged** state makes the most sense.
 
 I did add some funny output to the end of the **vlans_show** playbook in this chapter, let's see what it did:
 ```
@@ -91,7 +91,7 @@ ok: [SW-2] =>
     msg: Vlan 2 is named HERP
 ```
 
-Before we look to deeply, let's compare it to the corresponding task "code":
+Before we look to deeply, let's compare it to the code for the corresponding task:
 ```
 - name: "Arista: Show output: vlans.gathered.0"
   debug:
@@ -131,3 +131,6 @@ That's it for now! Maybe some FortiOS stuff in the next chapter?
 git switch chapter-4
 ```
 https://github.com/emieli/ansible-demo/tree/chapter-4
+
+References:
+- https://docs.ansible.com/ansible/latest/collections/arista/eos/eos_vlans_module.html
