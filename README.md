@@ -23,15 +23,16 @@ ssh 10.215.200.25
 ## Step 2
 Clone this git repo in your home folder, creating a "ansible-demo" directory:
 ```
-cd && git clone https://github.com/emieli/ansible-demo.git ansible-demo
-cd ansible-demo/
+emileli@clab:~$ cd && git clone https://github.com/emieli/ansible-demo.git ansible-demo
+emileli@clab:~$ cd ansible-demo/
+emileli@clab:~/ansible-demo$ 
 ```
 
 ## Step 3
 Deploy your containerlab topology:
 ```
-echo "name: $USER" >> topology.clab.yml
-containerlab deploy
+emileli@clab:~/ansible-demo$ echo "name: $USER" >> topology.clab.yml
+emileli@clab:~/ansible-demo$ containerlab deploy
 ```
 *This will take a minute to run, as the nodes take some time to get started*
 
