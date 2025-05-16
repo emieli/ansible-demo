@@ -1,11 +1,11 @@
 # Chapter 1: Installing Ansible and creating Inventory file
 Ansible is written in Python, so installing Ansible is as simple as installing the Ansible Python package:
 ```
-$ python3 -m venv venv
-$ source venv/bin/activate
-(venv) $ pip install --upgrade pip
-(venv) $ pip install ansible
-(venv) $ ansible --version
+emileli@clab:~/ansible-demo$ python3 -m venv venv
+emileli@clab:~/ansible-demo$ source venv/bin/activate
+(venv) emileli@clab:~/ansible-demo$ pip install --upgrade pip
+(venv) emileli@clab:~/ansible-demo$ pip install ansible
+(venv) emileli@clab:~/ansible-demo$ ansible --version
 ansible [core 2.18.5]
 ```
 
@@ -13,12 +13,12 @@ To give some deeper explanation, we first create a new Python Virtual Environmen
 
 To show that the binary changes, we can run these commands:
 ```
-(venv) $ deactivate
-$ which python3
+(venv) emileli@clab:~/ansible-demo$ deactivate
+emileli@clab:~/ansible-demo$ which python3
 /usr/bin/python3
 
-$ source venv/bin/activate
-(venv) $ which python3
+emileli@clab:~/ansible-demo$ source venv/bin/activate
+(venv) emileli@clab:~/ansible-demo$ which python3
 /home/emileli/ansible-demo/venv/bin/python3
 ```
 
