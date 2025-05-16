@@ -5,7 +5,7 @@ This is an Ansible workshop, helping you learn how to get started with Ansible a
 This workshop contain eight chapters. We start nice and easy, introducing concepts like inventory, hostvars and groupvars. We then read through and run a few playbooks to understand the syntax better. We show ways to scale up your project with roles. A few chapters in, you're asked to build your own playbook, then break one that I built. We also review Ansible Vault, encrypting sensitive data.
 
 ## Requirements
-This workshop was made for colleagues at my company where I provided a containerlab environment. If you stumble across this repository, you won't be able to run the playbooks unless you setup a containerlab yourself. You can find the topology file in this repo, but I do not provide the images. Both the Arista and Fortinet images are free to download though, you just need to register a free account. Try sticking with 7.0.x Fortigate images as later release trains use a highly restricted trial mode.
+This workshop was made for colleagues at my company where I provided a containerlab environment. If you stumble across this repository, you won't be able to run the playbooks unless you setup a containerlab yourself. For info on setting up this lab yourself, check this guide: https://github.com/emieli/ansible-demo/blob/main/.REQUIREMENTS.md
 
 # Chapter 0: Getting started
 In this chapter we deploy our lab environment so that we have something to run ansible commands against. We'll be setting up a Fortigate Firewall and two Arista cEOS L3 switches. Arista CLI is very similar to Cisco syntax. In later chapters we'll be configuring VLANs through Ansible playbooks. 
