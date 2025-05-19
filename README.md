@@ -1,3 +1,8 @@
+*Enter chapter-8 branch*
+```
+git switch chapter-8
+```
+
 # Chapter 8: Pass variables into playbook
 So far in the lab we have been hardcoding values in our playbooks. For example, our vlans HERP and DERP have both had their name and ID hardcoded. This chapter will explore a more realistic approach where you, the user, supply the Name and ID of the VLAN when you start the playbook. This makes the playbook reusable as adding new VLANs won't require actually changing the playbooks themselves.
 
