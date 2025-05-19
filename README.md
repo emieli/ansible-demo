@@ -1,3 +1,8 @@
+*Enter chapter-7 branch*
+```
+git switch chapter-7
+```
+
 # Chapter 7: Ansible Vault
 So far in the lab we have been adding credentials as cleartext in our inventory files. This is OK if you don't add these files in your GIT repository. To access the credentials the baddy must have access your current Ansible directory. But it's very likely that you want to commit your inventory to GIT. Not only for version control, but also to easily deploy the same Ansible setup on another server.
 
@@ -158,11 +163,7 @@ ok: [SW-1]
 ```
 *--ask-vault-pass is still required, very good*
 
-That's it for this chapter! The next chapter is the last one!
-```
-git switch chapter-8
-```
-https://github.com/emieli/ansible-demo/blob/chapter-8/README.md
+That's it for this chapter! The next chapter is the last one: https://github.com/emieli/ansible-demo/blob/chapter-8/README.md
 
 # Resources
 - https://docs.ansible.com/ansible/latest/cli/ansible-vault.html
