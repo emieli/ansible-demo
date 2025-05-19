@@ -72,8 +72,7 @@ Ma0                            up             up
 sw-1#
 ```
 
-Our environment is up and running! Let's hop into Chapter 1 to do some Ansible stuff:
-```
-git switch chapter-1
-```
+Our environment is up and running! 
+
+Let's hop into Chapter 1 to do some Ansible stuff:
 https://github.com/emieli/ansible-demo/tree/chapter-1
