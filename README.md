@@ -1,3 +1,8 @@
+*Enter chapter-5 branch*
+```
+git switch chapter-5
+```
+
 # Chapter 5: Configure Fortigate subinterfaces
 Just creating the VLANs on the switches typically isn't good enough. The devices on that VLAN need some way to exit their local subnet and talk to other devices on your network. We need a default gateway. This is where our lovely Fortigate firewall comes. It will act as default gateway and perform inter-vlan routing while doing some of that sweet security-enchancing stateful inspection.
 
@@ -216,9 +221,5 @@ The simplest solution to this problem is to add the **--limit SITE01** to the en
 *The second line show that multiple limits can be added. In this case the playbook will only run FW-1 tasks.*
 
 # Conclusion
-The playbook now also configure the Fortigate. Pretty cool. I hope you're enjoying the tutorial so far. In the next chapter we add some more config on our switches.
-
-```
-git switch chapter-6
-```
-https://github.com/emieli/ansible-demo/blob/chapter-6/README.md
+The playbook now also configure the Fortigate. Pretty cool. I hope you're enjoying the tutorial so far.  
+In the next chapter we add some more config on our switches: https://github.com/emieli/ansible-demo/blob/chapter-6/README.md
