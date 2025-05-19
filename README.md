@@ -1,3 +1,8 @@
+*Enter chapter-3 branch*
+```
+git switch chapter-3
+```
+
 # Chapter 3: Playbook to Add a VLAN
 This time a playbook **playbook_arista_vlans_add.yml** has been added. Let's run it:
 ```
@@ -126,11 +131,7 @@ Although my arguments are a bit contrived here, I'm trying to highlight the purp
 This is why the **eos_vlans** module is state-based. We tell it what state we expect, and it makes sure to get us there. Since I can't provide any state in the **debug** tasks, I had to use the **when** statement to enforce idempotency. 
 I couldn't be sure that you would run my two playbooks in order while reading this chapter, so I had to make sure that the playbook would not throw an error if you decided to run **vlans_show** before any VLANs had been added to the switch.
 
-That's it for now! Maybe some FortiOS stuff in the next chapter?
-```
-git switch chapter-4
-```
-https://github.com/emieli/ansible-demo/tree/chapter-4
+That's it for now! Maybe some FortiOS stuff in the next chapter?: https://github.com/emieli/ansible-demo/tree/chapter-4
 
 References:
 - https://docs.ansible.com/ansible/latest/collections/arista/eos/eos_vlans_module.html
