@@ -1,3 +1,8 @@
+*Enter chapter-4 branch*
+```
+git switch chapter-4
+```
+
 # Chapter 4: Generate Fortigate API access-token
 We want Ansible to also create subinterfaces for the VLAN's we have been creating so far. We do however immediately run into a problem. The fortigate does not have any HTTPAPI access out of the box, so before we can do any Ansible-automation using the **fortinet.fortios** package, we have to generate an API access-token that Ansible can use.
 
@@ -270,12 +275,8 @@ ansible_httpapi_session_key:
 ansible_user: ansible
 ```
 
-We are now ready to use the Ansible module **fortinet.fortios** to Automate our Fortigate config, onward to the next chapter!
-
-```
-git switch chapter-5
-```
-https://github.com/emieli/ansible-demo/tree/chapter-5
+We are now ready to use the Ansible module **fortinet.fortios** to Automate our Fortigate config.  
+Onward to the next chapter: https://github.com/emieli/ansible-demo/tree/chapter-5
 
 Resources:
 - https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html
