@@ -1,3 +1,22 @@
+### Enter chapter-1 GIT branch
+Before we begin this chapter, we need to enter the correct GIT branch. This guide is serving each chapter in its own branch. To access the chapter-1 branch, enter the **git switch chapter-1** command:
+```
+emileli@clab:~/ansible-demo$ git switch chapter-1
+branch 'chapter-1' set up to track 'origin/chapter-1'.
+Switched to a new branch 'chapter-1'
+emileli@clab:~/ansible-demo$
+```
+*We are now in the chapter-1 branch*
+
+### Nano text-editor
+A popular Linux text-editor to create and edit text files is called Nano. To create a new **hosts.yml** file with Nano:
+```
+emileli@clab:~/ansible-demo$ nano hosts.yml
+```
+This will open a new full-size window where you make your changes to the text file. When you are happy with your changes, press **Ctrl+X** to exit the program. Press **Y** on "Save modified buffer?". Press **Enter** on "File name to write: hosts.yml". The file is now saved to disk. Run the same **nano hosts.yml** command to re-open the file. Your changes should still be there.
+
+With this short detour completed, let's continue with the actual chapter contents!
+
 # Chapter 1: Installing Ansible and creating Inventory file
 Ansible is written in Python, so installing Ansible is as simple as installing the Ansible Python package:
 ```
@@ -26,20 +45,8 @@ Once we have entered our venv, we upgrade PIP (package installer for python) to 
 
 If you want to exit the venv, execute the **deactivate** command. You shouldn't have to do this though.
 
-## Enter chapter-1 GIT branch
-Before we continue with this chapter, we need to enter the correct GIT branch. This guide is serving each chapter in its own branch. To access the chapter-1 branch, enter the **git switch chapter-1** command:
-```
-emileli@clab:~/ansible-demo$ git switch chapter-1
-branch 'chapter-1' set up to track 'origin/chapter-1'.
-Switched to a new branch 'chapter-1'
-emileli@clab:~/ansible-demo$
-```
-*We are now in the chapter-1 branch*
-
-With this short detour completed, let's continue with the actual chapter contents!
-
 # Create Ansible Inventory file
-Now that Ansible is installed, we need to build our Ansible inventory so that it can interact with FW-1, SW-1 and SW-2. Feel free to do this in vim or nano. The file should be named **hosts.yml**. 
+Now that Ansible is installed, we need to build our Ansible inventory so that it can interact with FW-1, SW-1 and SW-2. Feel free to do this in Vim or Nano. The file should be named **hosts.yml**.
 
 **hosts.yml**:
 ```yaml
