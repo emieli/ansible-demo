@@ -1,3 +1,8 @@
+*Enter chapter-6 branch*
+```
+git switch chapter-6
+```
+
 # Chapter 6: Trunk switchports & STP root bridge
 To show what more Ansible can do, let's implement some more features. One such important feature is making FW-SW and SW-SW interfaces into trunk switchports. There's little point creating VLANs if your switchports won't forward the traffic. Another "important" feature is deciding which switch should be Spanning-Tree root bridge. All switches have the same priority by default, so the switch MAC-address is typically what decides who becomes STP root. To force SW-1 (who is closest to the firewall) to become STP root bridge, we need to make some config changes.
 
@@ -266,8 +271,4 @@ Et2             1-3
 
 That's it for this chapter! We focused on fetching data and using **loops** with **when** statements to make strategic configuration decisions. 
 
-You're doing great! Next up is Ansible Vault:
-```
-git switch chapter-7
-```
-https://github.com/emieli/ansible-demo/blob/chapter-7/README.md
+You're doing great! Next up is Ansible Vault: https://github.com/emieli/ansible-demo/blob/chapter-7/README.md
