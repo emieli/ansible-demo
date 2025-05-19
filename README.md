@@ -1,3 +1,8 @@
+*Enter chapter-2 branch*
+```
+git switch chapter-2
+```
+
 # Chapter 2: First Playbook
 I have prepared a **playbook_arista_vlans_show.yml** for us, let's run it:
 ```
@@ -183,11 +188,7 @@ In the second debug statement we only print the **vlans.gathered** output, givin
         var: vlans.gathered
 ```
 
-Next up is chapter 3:
-```
-git switch chapter-3
-```
-https://github.com/emieli/ansible-demo/tree/chapter-3
+Next up is chapter 3: https://github.com/emieli/ansible-demo/tree/chapter-3
 
 Resources:
 - https://docs.ansible.com/ansible/latest/collections/arista/eos/eos_vlans_module.html
