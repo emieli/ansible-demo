@@ -26,7 +26,19 @@ Once we have entered our venv, we upgrade PIP (package installer for python) to 
 
 If you want to exit the venv, execute the **deactivate** command. You shouldn't have to do this though.
 
-## Create Ansible Inventory file
+## Enter chapter-1 GIT branch
+Before we continue with this chapter, we need to enter the correct GIT branch. This guide is serving each chapter in its own branch. To access the chapter-1 branch, enter the **git switch chapter-1** command:
+```
+emileli@clab:~/ansible-demo$ git switch chapter-1
+branch 'chapter-1' set up to track 'origin/chapter-1'.
+Switched to a new branch 'chapter-1'
+emileli@clab:~/ansible-demo$
+```
+*We are now in the chapter-1 branch*
+
+With this short detour completed, let's continue with the actual chapter contents!
+
+# Create Ansible Inventory file
 Now that Ansible is installed, we need to build our Ansible inventory so that it can interact with FW-1, SW-1 and SW-2. Feel free to do this in vim or nano. The file should be named **hosts.yml**. 
 
 **hosts.yml**:
@@ -94,8 +106,4 @@ $ ansible-inventory --list
 
 We have now installed Ansible and created a inventory file. Next up is creating our first Ansible playbook!
 
-Next up is chapter 2:
-```
-git switch chapter-2
-```
-https://github.com/emieli/ansible-demo/tree/chapter-2
+Next up is chapter 2: https://github.com/emieli/ansible-demo/tree/chapter-2
